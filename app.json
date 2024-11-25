@@ -1,0 +1,27 @@
+{
+  "apps" : [{
+    "name"       : "news-hound",
+    "script"     : "./dist/main.js",
+    "instances"  : 1,
+    "exec_mode"  : "cluster",
+    "instance_var": "INSTANCE_ID",
+    "out_file" : "./logs/news-hound-server/news-hound.log",
+    "error_file" : "./logs/news-hound-server/news-hound_error.log",
+    "interpreter_args": "--nouse-idle-notification --max-old-space-size=1024",
+    "end": {
+      "NODE_ENV": "production"
+    },
+    "env_development": {
+      "NODE_ENV": "development"
+    },
+    "env_local": {
+      "NODE_ENV": "local"
+    },
+    "env_development2": {
+      "NODE_ENV": "development2"
+    },
+    "env_production": {
+      "NODE_ENV": "production"
+    }
+  }]
+}
