@@ -1,3 +1,5 @@
+import * as dotenv from 'dotenv';
+dotenv.config();
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -12,6 +14,10 @@ import { RedisModule } from '@nestjs-modules/ioredis';
 import { ConfigModule } from '@nestjs/config';
 import { join } from 'path';
 
+const env = process.env.NODE_ENV;
+
+console.log('env', env);
+
 @Module({
   imports: [
     ScheduleModule.forRoot(),
@@ -20,14 +26,14 @@ import { join } from 'path';
       host: '127.0.0.1',
       port: 3306,
       username: 'root',
-      password: process.env.MYSQL_PASSWORD || undefined,
+      password: env === 'local' ? '' : (process.env.MYSQL_PASSWORD || ''),
       database: 'news_hound',
       charset: 'utf8mb4',
       dateStrings: true,
-      logging: false,
+      logging: true,
       entities: [join(__dirname, '..', '**', '*.entity.{ts,js}')],
       migrations: [join(__dirname, '..', 'migrations', '*.{ts,js}')],
-      synchronize: false,
+      synchronize: true,
     }),
     TypeOrmModule.forFeature([News, NewsSource]), // Added News entity to imports
     RedisModule.forRoot({

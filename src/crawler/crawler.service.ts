@@ -1,3 +1,5 @@
+import * as dotenv from 'dotenv';
+dotenv.config();
 import { Injectable } from '@nestjs/common';
 import * as cheerio from 'cheerio';
 import { InjectRepository } from '@nestjs/typeorm';

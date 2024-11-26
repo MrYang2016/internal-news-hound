@@ -1,4 +1,6 @@
 
+import * as dotenv from 'dotenv';
+dotenv.config();
 import OpenAI from "openai";
 import { Messages } from "./aiChat.d";
 
@@ -10,10 +12,6 @@ if (process.env.DEEPSEEK_API_KEY) {
     apiKey: process.env.DEEPSEEK_API_KEY,
   });
 }
-
-setInterval(() => {
-  console.log('DEEPSEEK_API_KEY', process.env.DEEPSEEK_API_KEY);
-}, 1000);
 
 export async function deepseekCreateCompletion(options: {
   messages: Messages[],
