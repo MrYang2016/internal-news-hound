@@ -31,9 +31,14 @@ console.log('env', env);
       charset: 'utf8mb4',
       dateStrings: true,
       logging: true,
-      entities: [join(__dirname, '..', '**', '*.entity.{ts,js}')],
-      migrations: [join(__dirname, '..', 'migrations', '*.{ts,js}')],
+      entities: [join(__dirname, '**', '*.entity.{ts,js}')],
+      migrations: [join(__dirname, 'migrations', '*.{ts,js}')],
       synchronize: true,
+      extra: {
+        connectionLimit: 10,  // 连接池的最大连接数
+        waitForConnections: true,
+        queueLimit: 0,
+      }
     }),
     TypeOrmModule.forFeature([News, NewsSource]), // Added News entity to imports
     RedisModule.forRoot({
