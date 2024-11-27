@@ -4,6 +4,8 @@ import Redis from 'ioredis';
 import { embedOne } from '../common/ai';
 import { ONE_DAY, parseJson } from '../common/utils';
 
+const indexName = 'embedding_index_384';
+
 @Injectable()
 export class EmbeddingService {
   constructor(
@@ -42,11 +44,11 @@ export class EmbeddingService {
 
   private async createEmbeddingIndex() {
     const createIndexCommand = new Redis.Command('FT.CREATE', [
-      'embedding_index', // 索引名称
+      indexName, // 索引名称
       'ON', 'JSON', // 数据类型
       'PREFIX', '1', 'embedding:', // 数据前缀
       'SCHEMA',
-      '$.vector', 'AS', 'vector', 'VECTOR', 'FLAT', '6', 'TYPE', 'FLOAT32', 'DIM', '1536', 'DISTANCE_METRIC', 'COSINE'
+      '$.vector', 'AS', 'vector', 'VECTOR', 'FLAT', '6', 'TYPE', 'FLOAT32', 'DIM', '384', 'DISTANCE_METRIC', 'COSINE'
     ]);
 
     await this.redis.sendCommand(createIndexCommand);
@@ -54,7 +56,7 @@ export class EmbeddingService {
 
   private async ensureEmbeddingIndex() {
     try {
-      await this.redis.sendCommand(new Redis.Command('FT.INFO', ['embedding_index']));
+      await this.redis.sendCommand(new Redis.Command('FT.INFO', [indexName]));
     } catch (error) {
       if (error.message.includes('Unknown index name')) {
         await this.createEmbeddingIndex();
@@ -76,7 +78,7 @@ export class EmbeddingService {
 
     // Perform the KNN search using the FT.SEARCH command
     const searchCommand = new Redis.Command('FT.SEARCH', [
-      'embedding_index', // The name of the index
+      indexName, // The name of the index
       `*=>[KNN ${topK} @vector $query_vector]`, // KNN search query
       'PARAMS', '2', 'query_vector', vectorBuffer, // Parameters for the query
       'DIALECT', '2' // Use dialect 2 for the query

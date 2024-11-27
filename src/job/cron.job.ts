@@ -17,23 +17,8 @@ export class TasksService {
     const job = this.schedulerRegistry.getCronJob('fetchLatestNews');
     job.stop();
     try {
-      const result = await this.crawlerService.fetchLatestNews();
-      console.log({ type: 'cron', msg: 'fetchLatestNews', result });
-
-      let cbcResult = await this.crawlerService.fetchLatestNewsFromCbc();
-      console.log({ type: 'cron', msg: 'fetchLatestNewsFromCbc', result: cbcResult });
-
-      const langleyResult = await this.crawlerService.fetchLatestNewsFromLangleyAdvanceTimes();
-      console.log({ type: 'cron', msg: 'fetchLatestNewsFromLangleyAdvanceTimes', result: langleyResult });
-
-      const tolResult = await this.crawlerService.fetchLatestNewsFromTol();
-      console.log({ type: 'cron', msg: 'fetchLatestNewsFromTol', result: tolResult });
-
-      const langleyCityEventsResult = await this.crawlerService.fetchLatestNewsFromLangleyCity('events');
-      console.log({ type: 'cron', msg: 'fetchLatestNewsFromLangleyCityEvents', result: langleyCityEventsResult });
-
-      const langleyCityNewsResult = await this.crawlerService.fetchLatestNewsFromLangleyCity('news');
-      console.log({ type: 'cron', msg: 'fetchLatestNewsFromLangleyCityNews', result: langleyCityNewsResult });
+      const vergeResult = await this.crawlerService.fetchLatestNewsFromTheVerge();
+      console.log({ type: 'cron', msg: 'fetchLatestNewsFromTheVerge', result: vergeResult });
     } catch (error) {
       console.error({ type: 'cron', msg: 'fetchLatestNews', error });
     } finally {
