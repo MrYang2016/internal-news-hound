@@ -28,7 +28,13 @@ export class NewsSource {
   news: News[];
 }
 
-@Entity()
+// ALTER DATABASE `你的数据库名` CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+// @ts-ignore
+@Entity({
+  name: 'news', // 表名，可选
+  charset: 'utf8mb4', // 设置字符集
+  collation: 'utf8mb4_unicode_ci', // 设置排序规则
+})
 @Index('Idx_source_name', ['source'])
 export class News {
   @PrimaryGeneratedColumn()
