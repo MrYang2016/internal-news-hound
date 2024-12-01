@@ -123,6 +123,52 @@ export class CrawlerService {
     return result;
   }
 
+  // https://arstechnica.com/
+  async fetchLatestNewsFromArsTechnica() {
+    const url = 'https://arstechnica.com';
+    const proxy = 'http://127.0.0.1:1087'; // Shadowsocks 代理地址
+    const agent = new HttpsProxyAgent(proxy);
+
+    const response = await axios.get(url, env === 'local' ? { httpsAgent: agent } : {});
+    const data = response.data;
+    const $ = cheerio.load(data);
+
+    const newsItems = [];
+
+    $('article').each((index, element) => {
+      const title = $(element).find('h2 a').text().trim();
+      const link = $(element).find('h2 a').attr('href');
+      const summary = $(element).find('p').text().trim();
+      const time = $(element).find('time').attr('datetime');
+      const highlight = '';
+
+      newsItems.push({ title, link, summary, time, highlight, source: { name: 'arstechnica' } });
+    });
+
+    const result = (await Promise.all(newsItems.filter(v => !!(v.title && v.time && v.link)).map(async v => {
+      const link = v.link.startsWith('http') ? v.link : `${url}${v.link}`;
+      v.link = link;
+      const exist = await this.checkNewsExists({ link, title: v.title, summary: v.summary });
+      if (!exist) {
+        return null;
+      }
+      v.time = new Date(v.time);
+      await this.embeddingService.saveEmbeddingFromStr(v.title + v.summary, v.id);
+      return v;
+    }))).filter(v => !!v);
+
+    for (let i = 0; i < result.length; i++) {
+      const item = result[i];
+      const translate = await getTranslateByText({ title: item.title, summary: item.summary || '', language: 'Chinese' });
+      if (translate) {
+        item.title = translate.title;
+        item.summary = translate.summary;
+      }
+    }
+    await this.newsRepository.save(result);
+    return result;
+  }
+
   // 从数据库中获取新闻，分页
   async getNews(size: number, page: number, sourceName?: string) {
     const [news, total] = await this.newsRepository.findAndCount({
