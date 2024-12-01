@@ -9,7 +9,7 @@ export class TasksService {
     private schedulerRegistry: SchedulerRegistry,
   ) { }
 
-  @Cron(CronExpression.EVERY_10_SECONDS, {
+  @Cron(CronExpression.EVERY_10_HOURS, {
     name: 'fetchLatestNews'
   })
   async fetchLatestNews() {
