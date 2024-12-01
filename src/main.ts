@@ -35,7 +35,7 @@ async function bootstrap() {
 
   // 添加web文件夹为静态文件夹
   app.useStaticAssets(join(__dirname, '..', 'web'), {
-    prefix: '/static/',
+    prefix: '/',
   });
 
   await app.listen(3004);
