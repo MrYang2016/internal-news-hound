@@ -25,6 +25,9 @@ export class TasksService {
 
       const arsTechnicaResult = await this.crawlerService.fetchLatestNewsFromArsTechnica();
       console.log({ type: 'cron', msg: 'fetchLatestNewsFromArsTechnica', result: arsTechnicaResult });
+
+      const githubTrendingResult = await this.crawlerService.fetchLatestNewsFromGitHubTrending();
+      console.log({ type: 'cron', msg: 'fetchLatestNewsFromGitHubTrending', result: githubTrendingResult });
     } catch (error) {
       console.error({ type: 'cron', msg: 'fetchLatestNews', error });
     } finally {
