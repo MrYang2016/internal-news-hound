@@ -38,6 +38,9 @@ export class TasksService {
       const techRadarResult = await this.crawlerService.fetchLatestNewsFromTechRadar();
       console.log({ type: 'cron', msg: 'fetchLatestNewsFromTechRadar', result: techRadarResult });
 
+      const xdaDevelopersResult = await this.crawlerService.fetchLatestNewsFromXdaDevelopers();
+      console.log({ type: 'cron', msg: 'fetchLatestNewsFromXdaDevelopers', result: xdaDevelopersResult });
+
       // 删除一个月前的数据
       await this.newsRepository.delete({
         time: LessThan(new Date(Date.now() - ONE_MONTH))
