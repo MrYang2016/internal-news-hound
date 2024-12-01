@@ -21,3 +21,5 @@ export function parseJson(content: any): { [key: string]: any } | null {
 export const HOURS = 60 * 60 * 1000;
 
 export const ONE_DAY = 24 * HOURS;
+
+export const ONE_MONTH = 30 * ONE_DAY;
