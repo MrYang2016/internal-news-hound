@@ -92,13 +92,14 @@ export class CrawlerService {
       if (!exist) {
         return null;
       }
-      console.log(v.time);
       if (v.time) {
         const match = v.time.match(/^(?<timeNum>\d+)\s+(?<timeType>(minutes)|(hours)|(days))\s+ago$/);
         if (match) {
           v.time = new Date(Date.now() - parseInt(match.groups.timeNum) * (match.groups.timeType === 'minutes' ? 1 : match.groups.timeType === 'hours' ? 60 : (24 * 60)) * 60 * 1000);
-          console.log(v.time);
         }
+      }
+      if (!(v.time instanceof Date)) {
+        v.time = new Date();
       }
       await this.embeddingService.saveEmbeddingFromStr(v.title + v.summary, v.id);
       return v;
@@ -285,7 +286,6 @@ export class CrawlerService {
     for (let i = 0; i < news.length; i++) {
       const item = news[i];
       await this.embeddingService.saveEmbeddingFromStr(item.title + item.summary, item.id);
-      console.log(item.title + item.summary);
     }
   }
 
