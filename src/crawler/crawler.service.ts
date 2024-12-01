@@ -230,6 +230,49 @@ export class CrawlerService {
     return result;
   }
 
+  // https://www.xda-developers.com/news/
+  async fetchLatestNewsFromXdaDevelopers() {
+    const url = 'https://www.xda-developers.com/news/';
+    const proxy = 'http://127.0.0.1:1087'; // Shadowsocks 代理地址
+    const agent = new HttpsProxyAgent(proxy);
+
+    const response = await axios.get(url, env === 'local' ? { httpsAgent: agent } : {});
+    const data = response.data;
+    const $ = cheerio.load(data);
+
+    const newsItems = [];
+
+    $('.display-card').each((index, element) => {
+      const title = $(element).find('.display-card-title a').text().trim();
+      const link = $(element).find('.display-card-title a').attr('href');
+      const summary = $(element).find('.display-card-excerpt').text().trim();
+      const time = new Date($(element).find('.article-date time').attr('datetime'));
+
+      newsItems.push({
+        title,
+        link: link.startsWith('http') ? link : `https://www.xda-developers.com${link}`,
+        summary,
+        time,
+        source: { name: 'XDA' }
+      });
+    });
+
+    const result = (await Promise.all(newsItems.map(async item => {
+      const exist = await this.checkNewsExists({
+        link: item.link, title: item.title, summary: item.summary
+      });
+      if (!exist) {
+        return null;
+      }
+      await this.embeddingService.saveEmbeddingFromStr(item.title + item.summary, item.id);
+      return item;
+    }))).filter(item => !!item);
+
+    await this.translateNews(result);
+    await this.newsRepository.save(result);
+    return result;
+  }
+
   // 从数据库中获取新闻，分页
   async getNews(size: number, page: number, sourceName?: string) {
     const [news, total] = await this.newsRepository.findAndCount({
