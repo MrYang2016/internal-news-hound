@@ -189,6 +189,43 @@ export class CrawlerService {
     return result;
   }
 
+  // https://www.techradar.com/
+  async fetchLatestNewsFromTechRadar() {
+    const url = 'https://www.techradar.com';
+    const proxy = 'http://127.0.0.1:1087'; // Shadowsocks 代理地址
+    const agent = new HttpsProxyAgent(proxy);
+
+    const response = await axios.get(url, env === 'local' ? { httpsAgent: agent } : {});
+    const data = response.data;
+    const $ = cheerio.load(data);
+
+    const newsItems = [];
+
+    $('.wcl-item').each((index, element) => {
+      const title = $(element).find('.wcl-item-title').text().trim();
+      const link = $(element).find('a').attr('href');
+      const summary = ''; // Assuming no summary is available in the provided structure
+      const time = new Date(); // Assuming current time as no time is available
+      const highlight = '';
+
+      newsItems.push({ title, link, summary, time, highlight, source: { name: 'techradar' } });
+    });
+
+    const result = (await Promise.all(newsItems.filter(v => !!(v.title && v.link)).map(async v => {
+      const link = v.link.startsWith('http') ? v.link : `${url}${v.link}`;
+      v.link = link;
+      const exist = await this.checkNewsExists({ link, title: v.title, summary: v.summary });
+      if (!exist) {
+        return null;
+      }
+      await this.embeddingService.saveEmbeddingFromStr(v.title + v.summary, v.id);
+      return v;
+    }))).filter(v => !!v);
+
+    await this.translateNews(result);
+    await this.newsRepository.save(result);
+    return result;
+  }
 
   // 从数据库中获取新闻，分页
   async getNews(size: number, page: number, sourceName?: string) {

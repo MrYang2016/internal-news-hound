@@ -9,7 +9,7 @@ export class TasksService {
     private schedulerRegistry: SchedulerRegistry,
   ) { }
 
-  @Cron(CronExpression.EVERY_HOUR, {
+  @Cron(CronExpression.EVERY_10_SECONDS, {
     name: 'fetchLatestNews'
   })
   async fetchLatestNews() {
@@ -28,6 +28,9 @@ export class TasksService {
 
       const githubTrendingResult = await this.crawlerService.fetchLatestNewsFromGitHubTrending();
       console.log({ type: 'cron', msg: 'fetchLatestNewsFromGitHubTrending', result: githubTrendingResult });
+
+      const techRadarResult = await this.crawlerService.fetchLatestNewsFromTechRadar();
+      console.log({ type: 'cron', msg: 'fetchLatestNewsFromTechRadar', result: techRadarResult });
     } catch (error) {
       console.error({ type: 'cron', msg: 'fetchLatestNews', error });
     } finally {
