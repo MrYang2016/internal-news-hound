@@ -176,7 +176,9 @@ export class CrawlerService {
 
     // Process and save the trending repositories
     const result = (await Promise.all(trendingRepos.map(async repo => {
-      const exist = await this.checkNewsExists({ link: repo.link, title: repo.title, summary: repo.summary });
+      const exist = await this.checkNewsExists({
+        link: repo.link, title: repo.title, summary: repo.summary, updateTime: true
+      });
       if (!exist) {
         return null;
       }
@@ -252,10 +254,13 @@ export class CrawlerService {
     return { news, total };
   }
 
-  private async checkNewsExists(options: { link: string, title: string, summary: string }) {
-    const { link, title, summary } = options;
+  private async checkNewsExists(options: { link: string, title: string, summary: string, updateTime?: boolean }) {
+    const { link, title, summary, updateTime = false } = options;
     const news = await this.newsRepository.exists({ where: { link } });
     if (news) {
+      if (updateTime) {
+        this.newsRepository.update({ link }, { time: new Date() });
+      }
       return false;
     }
     const similar = await this.embeddingService.hasSimilar(title + summary);
