@@ -112,6 +112,6 @@ export class EmbeddingService {
 
   async hasSimilar(input: string) {
     const result = await this.findClosestVector({ input, topK: 1 });
-    return result.results && result.results.length > 0 && result.results[0].score < 0.3;
+    return result.results && result.results.length > 0 && result.results[0].score < 0.2;
   }
 }
