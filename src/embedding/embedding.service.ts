@@ -4,7 +4,7 @@ import Redis from 'ioredis';
 import { embedOne } from '../common/ai';
 import { ONE_DAY, parseJson } from '../common/utils';
 
-const indexName = 'embedding_index_384';
+const indexName = 'embedding_index_384_2';
 
 @Injectable()
 export class EmbeddingService {

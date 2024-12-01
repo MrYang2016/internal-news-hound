@@ -3,7 +3,7 @@ import { Cron, SchedulerRegistry, CronExpression } from '@nestjs/schedule';
 import { CrawlerService } from '../crawler/crawler.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { News } from '../crawler/crawler.entity';
-import { Repository, MoreThan } from 'typeorm';
+import { Repository, LessThan } from 'typeorm';
 import { ONE_MONTH } from '../common/utils';
 
 @Injectable()
@@ -15,7 +15,7 @@ export class TasksService {
     private readonly newsRepository: Repository<News>,
   ) { }
 
-  @Cron(CronExpression.EVERY_HOUR, {
+  @Cron(CronExpression.EVERY_10_SECONDS, {
     name: 'fetchLatestNews'
   })
   async fetchLatestNews() {
@@ -40,7 +40,7 @@ export class TasksService {
 
       // 删除一个月前的数据
       await this.newsRepository.delete({
-        time: MoreThan(new Date(Date.now() - ONE_MONTH))
+        time: LessThan(new Date(Date.now() - ONE_MONTH))
       });
 
     } catch (error) {
