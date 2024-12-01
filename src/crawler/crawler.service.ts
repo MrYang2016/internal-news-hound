@@ -58,14 +58,7 @@ export class CrawlerService {
       return v;
     }))).filter(v => !!v);
 
-    for (let i = 0; i < result.length; i++) {
-      const item = result[i];
-      const translate = await getTranslateByText({ title: item.title, summary: item.summary || '', language: 'Chinese' });
-      if (translate) {
-        item.title = translate.title;
-        item.summary = translate.summary;
-      }
-    }
+    await this.translateNews(result);
     await this.newsRepository.save(result);
     return result;
   }
@@ -75,23 +68,23 @@ export class CrawlerService {
     const url = 'https://www.cnet.com';
     const proxy = 'http://127.0.0.1:1087'; // Shadowsocks 代理地址
     const agent = new HttpsProxyAgent(proxy);
-  
+
     const response = await axios.get(url, env === 'local' ? { httpsAgent: agent } : {});
     const data = response.data;
     const $ = cheerio.load(data);
-  
+
     const newsItems = [];
-  
+
     $('.c-storiesNeonLatest_content > a').each((index, element) => {
       const title = $(element).find('h3').text().trim();
       const link = $(element).attr('href');
       const summary = ''; // Assuming no summary is available in the provided structure
       const time = $(element).find('.c-storiesNeonLatest_meta').text().trim();
       const highlight = '';
-  
+
       newsItems.push({ title, link, summary, time, highlight, source: { name: 'cnet' } });
     });
-  
+
     const result = (await Promise.all(newsItems.filter(v => !!(v.title && v.time && v.link)).map(async v => {
       const link = `${url}${v.link}`;
       v.link = link;
@@ -110,15 +103,8 @@ export class CrawlerService {
       await this.embeddingService.saveEmbeddingFromStr(v.title + v.summary, v.id);
       return v;
     }))).filter(v => !!v);
-  
-    for (let i = 0; i < result.length; i++) {
-      const item = result[i];
-      const translate = await getTranslateByText({ title: item.title, summary: item.summary || '', language: 'Chinese' });
-      if (translate) {
-        item.title = translate.title;
-        item.summary = translate.summary;
-      }
-    }
+
+    await this.translateNews(result);
     await this.newsRepository.save(result);
     return result;
   }
@@ -157,17 +143,52 @@ export class CrawlerService {
       return v;
     }))).filter(v => !!v);
 
-    for (let i = 0; i < result.length; i++) {
-      const item = result[i];
-      const translate = await getTranslateByText({ title: item.title, summary: item.summary || '', language: 'Chinese' });
-      if (translate) {
-        item.title = translate.title;
-        item.summary = translate.summary;
-      }
-    }
+    await this.translateNews(result);
     await this.newsRepository.save(result);
     return result;
   }
+
+  // https://github.com/trending
+  async fetchLatestNewsFromGitHubTrending() {
+    const url = 'https://github.com/trending';
+    const proxy = 'http://127.0.0.1:1087'; // Shadowsocks 代理地址
+    const agent = new HttpsProxyAgent(proxy);
+
+    const response = await axios.get(url, env === 'local' ? { httpsAgent: agent } : {});
+    const data = response.data;
+    const $ = cheerio.load(data);
+
+    const trendingRepos = [];
+
+    $('.Box-row').each((index, element) => {
+      const title = $(element).find('h2 a').text().trim();
+      const link = $(element).find('h2 a').attr('href');
+      const description = $(element).find('p').text().trim();
+
+      trendingRepos.push({
+        title,
+        link: `https://github.com${link}`,
+        summary: description,
+        time: new Date(),
+        source: { name: 'GitHub Trending' }
+      });
+    });
+
+    // Process and save the trending repositories
+    const result = (await Promise.all(trendingRepos.map(async repo => {
+      const exist = await this.checkNewsExists({ link: repo.link, title: repo.title, summary: repo.summary });
+      if (!exist) {
+        return null;
+      }
+      await this.embeddingService.saveEmbeddingFromStr(repo.title + repo.summary, repo.id);
+      return repo;
+    }))).filter(repo => !!repo);
+
+    await this.translateNews(result);
+    await this.newsRepository.save(result);
+    return result;
+  }
+
 
   // 从数据库中获取新闻，分页
   async getNews(size: number, page: number, sourceName?: string) {
@@ -223,6 +244,17 @@ export class CrawlerService {
       const item = news[i];
       await this.embeddingService.saveEmbeddingFromStr(item.title + item.summary, item.id);
       console.log(item.title + item.summary);
+    }
+  }
+
+  private async translateNews(news: News[]) {
+    for (let i = 0; i < news.length; i++) {
+      const item = news[i];
+      const translate = await getTranslateByText({ title: item.title, summary: item.summary || '', language: 'Chinese' });
+      if (translate) {
+        item.title = translate.title;
+        item.summary = translate.summary;
+      }
     }
   }
 }
