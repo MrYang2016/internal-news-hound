@@ -19,6 +19,9 @@ export class TasksService {
     try {
       const vergeResult = await this.crawlerService.fetchLatestNewsFromTheVerge();
       console.log({ type: 'cron', msg: 'fetchLatestNewsFromTheVerge', result: vergeResult });
+
+      const cnetResult = await this.crawlerService.fetchLatestNewsFromCNET();
+      console.log({ type: 'cron', msg: 'fetchLatestNewsFromCNET', result: cnetResult });
     } catch (error) {
       console.error({ type: 'cron', msg: 'fetchLatestNews', error });
     } finally {

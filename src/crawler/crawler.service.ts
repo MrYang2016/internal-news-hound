@@ -70,6 +70,59 @@ export class CrawlerService {
     return result;
   }
 
+  // https://www.cnet.com/
+  async fetchLatestNewsFromCNET() {
+    const url = 'https://www.cnet.com';
+    const proxy = 'http://127.0.0.1:1087'; // Shadowsocks 代理地址
+    const agent = new HttpsProxyAgent(proxy);
+  
+    const response = await axios.get(url, env === 'local' ? { httpsAgent: agent } : {});
+    const data = response.data;
+    const $ = cheerio.load(data);
+  
+    const newsItems = [];
+  
+    $('.c-storiesNeonLatest_content > a').each((index, element) => {
+      const title = $(element).find('h3').text().trim();
+      const link = $(element).attr('href');
+      const summary = ''; // Assuming no summary is available in the provided structure
+      const time = $(element).find('.c-storiesNeonLatest_meta').text().trim();
+      const highlight = '';
+  
+      newsItems.push({ title, link, summary, time, highlight, source: { name: 'cnet' } });
+    });
+  
+    const result = (await Promise.all(newsItems.filter(v => !!(v.title && v.time && v.link)).map(async v => {
+      const link = `${url}${v.link}`;
+      v.link = link;
+      const exist = await this.checkNewsExists({ link, title: v.title, summary: v.summary });
+      if (!exist) {
+        return null;
+      }
+      console.log(v.time);
+      if (v.time) {
+        const match = v.time.match(/^(?<timeNum>\d+)\s+(?<timeType>(minutes)|(hours)|(days))\s+ago$/);
+        if (match) {
+          v.time = new Date(Date.now() - parseInt(match.groups.timeNum) * (match.groups.timeType === 'minutes' ? 1 : match.groups.timeType === 'hours' ? 60 : (24 * 60)) * 60 * 1000);
+          console.log(v.time);
+        }
+      }
+      await this.embeddingService.saveEmbeddingFromStr(v.title + v.summary, v.id);
+      return v;
+    }))).filter(v => !!v);
+  
+    for (let i = 0; i < result.length; i++) {
+      const item = result[i];
+      const translate = await getTranslateByText({ title: item.title, summary: item.summary || '', language: 'Chinese' });
+      if (translate) {
+        item.title = translate.title;
+        item.summary = translate.summary;
+      }
+    }
+    await this.newsRepository.save(result);
+    return result;
+  }
+
   // 从数据库中获取新闻，分页
   async getNews(size: number, page: number, sourceName?: string) {
     const [news, total] = await this.newsRepository.findAndCount({
