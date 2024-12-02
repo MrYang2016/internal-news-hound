@@ -15,7 +15,7 @@ export class TasksService {
     private readonly newsRepository: Repository<News>,
   ) { }
 
-  @Cron(CronExpression.EVERY_10_SECONDS, {
+  @Cron(CronExpression.EVERY_HOUR, {
     name: 'fetchLatestNews'
   })
   async fetchLatestNews() {
@@ -38,8 +38,8 @@ export class TasksService {
       const techRadarResult = await this.crawlerService.fetchLatestNewsFromTechRadar();
       console.log({ type: 'cron', msg: 'fetchLatestNewsFromTechRadar', result: techRadarResult });
 
-      const xdaDevelopersResult = await this.crawlerService.fetchLatestNewsFromXdaDevelopers();
-      console.log({ type: 'cron', msg: 'fetchLatestNewsFromXdaDevelopers', result: xdaDevelopersResult });
+      // const xdaDevelopersResult = await this.crawlerService.fetchLatestNewsFromXdaDevelopers();
+      // console.log({ type: 'cron', msg: 'fetchLatestNewsFromXdaDevelopers', result: xdaDevelopersResult });
 
       // 删除一个月前的数据
       await this.newsRepository.delete({
