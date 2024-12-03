@@ -26,8 +26,8 @@ export class TasksService {
       const vergeResult = await this.crawlerService.fetchLatestNewsFromTheVerge();
       console.log({ type: 'cron', msg: 'fetchLatestNewsFromTheVerge', result: vergeResult });
 
-      const cnetResult = await this.crawlerService.fetchLatestNewsFromCNET();
-      console.log({ type: 'cron', msg: 'fetchLatestNewsFromCNET', result: cnetResult });
+      // const cnetResult = await this.crawlerService.fetchLatestNewsFromCNET();
+      // console.log({ type: 'cron', msg: 'fetchLatestNewsFromCNET', result: cnetResult });
 
       const arsTechnicaResult = await this.crawlerService.fetchLatestNewsFromArsTechnica();
       console.log({ type: 'cron', msg: 'fetchLatestNewsFromArsTechnica', result: arsTechnicaResult });
@@ -40,6 +40,9 @@ export class TasksService {
 
       // const xdaDevelopersResult = await this.crawlerService.fetchLatestNewsFromXdaDevelopers();
       // console.log({ type: 'cron', msg: 'fetchLatestNewsFromXdaDevelopers', result: xdaDevelopersResult });
+
+      const acmTechNewsResult = await this.crawlerService.fetchLatestNewsFromACMTechNews();
+      console.log({ type: 'cron', msg: 'fetchLatestNewsFromACMTechNews', result: acmTechNewsResult });
 
       // 删除一个月前的数据
       await this.newsRepository.delete({

@@ -273,6 +273,62 @@ export class CrawlerService {
     return result;
   }
 
+  // https://technews.acm.org/
+  async fetchLatestNewsFromACMTechNews() {
+    const url = 'https://technews.acm.org';
+    const proxy = 'http://127.0.0.1:1087'; // Shadowsocks 代理地址
+    const agent = new HttpsProxyAgent(proxy);
+
+    const response = await axios.get(url, env === 'local' ? { httpsAgent: agent } : {});
+    const data = response.data;
+    const $ = cheerio.load(data);
+
+    const newsItems = [];
+
+    // Assuming the structure of the ACM TechNews page based on the provided HTML snippet
+    $('tr .mobilePadding').each((index, element) => {
+      const $title = $(element).find('b');
+      const title = $title.text().trim();
+      const link = $title.parent().attr('href');
+      const $summary = $(element).find('span').eq(1);
+      const summary = $summary.text().trim();
+      // 最后一个元素
+      const $time = $(element).find('span').last();
+      if (!$time.text().trim()) {
+        return;
+      }
+      // ; Justina Lee; David Ramli (November 25, 2024)
+      const time = new Date($time.text().trim().match(/\((.+)\)/)[1]);
+      const highlight = '';
+
+      if (!link || !title) {
+        return;
+      }
+
+      newsItems.push({
+        title,
+        link: link.startsWith('http') ? link : `${url}${link}`,
+        summary,
+        time,
+        highlight,
+        source: { name: 'ACM TechNews' }
+      });
+    });
+
+    const result = (await Promise.all(newsItems.filter(v => !!(v.title && v.link)).map(async v => {
+      const exist = await this.checkNewsExists({ link: v.link, title: v.title, summary: v.summary });
+      if (!exist) {
+        return null;
+      }
+      await this.embeddingService.saveEmbeddingFromStr(v.title + v.summary, v.id);
+      return v;
+    }))).filter(v => !!v);
+
+    await this.translateNews(result);
+    await this.newsRepository.save(result);
+    return result;
+  }
+
   // 从数据库中获取新闻，分页
   async getNews(size: number, page: number, sourceName?: string) {
     const [news, total] = await this.newsRepository.findAndCount({
