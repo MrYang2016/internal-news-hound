@@ -122,6 +122,8 @@ export class CrawlerService {
 
     const newsItems = [];
 
+    let titleMap = new Map<string, boolean>();
+
     $('article').each((index, element) => {
       const title = $(element).find('h2 a').text().trim();
       const link = $(element).find('h2 a').attr('href');
@@ -129,6 +131,10 @@ export class CrawlerService {
       const time = $(element).find('time').attr('datetime');
       const highlight = '';
 
+      if (titleMap.has(title)) {
+        return;
+      }
+      titleMap.set(title, true);
       newsItems.push({ title, link, summary, time, highlight, source: { name: 'arstechnica' } });
     });
 

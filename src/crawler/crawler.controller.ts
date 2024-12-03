@@ -34,7 +34,7 @@ export class CrawlerController {
   @Get('local-news')
   @ApiPortResult()
   async getLocalNews() {
-    return this.crawlerService.fetchLatestNewsFromACMTechNews();
+    return this.crawlerService.fetchLatestNewsFromArsTechnica();
   }
 
   // @ApiOperation({ summary: '将所有新闻设置为embedding' })
