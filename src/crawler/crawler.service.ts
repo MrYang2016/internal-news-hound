@@ -12,7 +12,7 @@ import axios from 'axios';
 import { HttpsProxyAgent } from 'https-proxy-agent';
 import { EmbeddingService } from '../embedding/embedding.service';
 import { MoreThan } from 'typeorm';
-import { parseStringPromise } from 'xml2js';
+import { XMLParser, XMLBuilder, XMLValidator } from 'fast-xml-parser';
 
 const env = process.env.NODE_ENV;
 
@@ -345,14 +345,17 @@ export class CrawlerService {
       const xmlData = response.data;
 
       // Parse the XML data
-      const xmlResult = await parseStringPromise(xmlData);
+      const xmlParser = new XMLParser();
+      const xmlResult = xmlParser.parse(xmlData);
 
-      const $ = cheerio.load(`<div>${xmlResult.rss.channel[0].item[0].description}</div>`);
+      // return xmlResult.rss.channel.item[0].description;
+
+      const $ = cheerio.load(`<div>${xmlResult.rss.channel.item[0].description}</div>`);
 
       // Initialize an array to hold the news items
       const newsItems = [];
 
-      const time = new Date(xmlResult.rss.channel[0].item[0].pubDate[0]);
+      const time = new Date(xmlResult.rss.channel.item[0].pubDate[0]);
       $('table').each((index, element) => {
         const title = $(element).find('a').first().text().trim();
         const link = $(element).find('a').first().attr('href')?.replace('/rss', '/web');
