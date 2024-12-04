@@ -12,6 +12,7 @@ import axios from 'axios';
 import { HttpsProxyAgent } from 'https-proxy-agent';
 import { EmbeddingService } from '../embedding/embedding.service';
 import { MoreThan } from 'typeorm';
+import { parseStringPromise } from 'xml2js';
 
 const env = process.env.NODE_ENV;
 
@@ -333,6 +334,58 @@ export class CrawlerService {
     await this.translateNews(result);
     await this.newsRepository.save(result);
     return result;
+  }
+
+  // https://cprss.s3.amazonaws.com/javascriptweekly.com.xml
+  async fetchLatestNewsFromJavaScriptWeekly() {
+    const url = 'https://cprss.s3.amazonaws.com/javascriptweekly.com.xml';
+
+    try {
+      const response = await axios.get(url);
+      const xmlData = response.data;
+
+      // Parse the XML data
+      const xmlResult = await parseStringPromise(xmlData);
+
+      const $ = cheerio.load(`<div>${xmlResult.rss.channel[0].item[0].description}</div>`);
+
+      // Initialize an array to hold the news items
+      const newsItems = [];
+
+      const time = new Date(xmlResult.rss.channel[0].item[0].pubDate[0]);
+      $('table').each((index, element) => {
+        const title = $(element).find('a').first().text().trim();
+        const link = $(element).find('a').first().attr('href')?.replace('/rss', '/web');
+        const summary = $(element).find('p').first().text().trim();
+
+        if (title && link && title !== 'Read on the Web') {
+          newsItems.push({
+            title,
+            link,
+            summary,
+            time,
+            source: { name: 'JavaScript Weekly' }
+          });
+        }
+      });
+
+      const result = (await Promise.all(newsItems.filter(v => !!(v.title && v.link)).map(async v => {
+        const exist = await this.checkNewsExists({ link: v.link, title: v.title, summary: v.summary });
+        if (!exist) {
+          return null;
+        }
+        await this.embeddingService.saveEmbeddingFromStr(v.title + v.summary, v.id);
+        return v;
+      }))).filter(v => !!v);
+  
+      await this.translateNews(result);
+      await this.newsRepository.save(result);
+
+      return result;
+    } catch (error) {
+      console.error('Error fetching or parsing XML:', error);
+      throw error;
+    }
   }
 
   // 从数据库中获取新闻，分页
