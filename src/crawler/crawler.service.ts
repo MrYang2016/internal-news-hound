@@ -355,7 +355,7 @@ export class CrawlerService {
       // Initialize an array to hold the news items
       const newsItems = [];
 
-      const time = new Date(xmlResult.rss.channel.item[0].pubDate[0]);
+      const time = new Date(xmlResult.rss.channel.item[0].pubDate[0]) || new Date();
       $('table').each((index, element) => {
         const title = $(element).find('a').first().text().trim();
         const link = $(element).find('a').first().attr('href')?.replace('/rss', '/web');
