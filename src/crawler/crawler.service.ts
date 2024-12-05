@@ -373,6 +373,8 @@ export class CrawlerService {
         }
       });
 
+      console.log(newsItems);
+
       const result = (await Promise.all(newsItems.filter(v => !!(v.title && v.link)).map(async v => {
         const exist = await this.checkNewsExists({ link: v.link, title: v.title, summary: v.summary });
         if (!exist) {
