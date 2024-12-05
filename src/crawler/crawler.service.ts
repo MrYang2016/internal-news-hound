@@ -185,7 +185,7 @@ export class CrawlerService {
     // Process and save the trending repositories
     const result = (await Promise.all(trendingRepos.map(async repo => {
       const exist = await this.checkNewsExists({
-        link: repo.link, title: repo.title, summary: repo.summary, updateTime: true
+        link: repo.link, title: repo.title, summary: repo.summary, updateTime: false
       });
       if (!exist) {
         return null;
