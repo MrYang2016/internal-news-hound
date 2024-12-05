@@ -355,6 +355,7 @@ export class CrawlerService {
       // Initialize an array to hold the news items
       const newsItems = [];
 
+      console.log(xmlResult.rss.channel.item[0].pubDate);
       const time = new Date(xmlResult.rss.channel.item[0].pubDate[0]) || new Date();
       $('table').each((index, element) => {
         const title = $(element).find('a').first().text().trim();
