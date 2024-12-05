@@ -355,8 +355,7 @@ export class CrawlerService {
       // Initialize an array to hold the news items
       const newsItems = [];
 
-      console.log(xmlResult.rss.channel.item[0].pubDate);
-      const time = new Date(xmlResult.rss.channel.item[0].pubDate[0]) || new Date();
+      const time = new Date(xmlResult.rss.channel.item[0].pubDate) || new Date();
       $('table').each((index, element) => {
         const title = $(element).find('a').first().text().trim();
         const link = $(element).find('a').first().attr('href')?.replace('/rss', '/web');
@@ -372,8 +371,6 @@ export class CrawlerService {
           });
         }
       });
-
-      console.log(newsItems);
 
       const result = (await Promise.all(newsItems.filter(v => !!(v.title && v.link)).map(async v => {
         const exist = await this.checkNewsExists({ link: v.link, title: v.title, summary: v.summary });
