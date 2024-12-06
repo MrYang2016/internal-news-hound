@@ -30,7 +30,7 @@ console.log('env', env);
       database: 'news_hound',
       charset: 'utf8mb4',
       dateStrings: true,
-      logging: true,
+      logging: false,
       entities: [join(__dirname, '**', '*.entity.{ts,js}')],
       migrations: [join(__dirname, 'migrations', '*.{ts,js}')],
       synchronize: true,
