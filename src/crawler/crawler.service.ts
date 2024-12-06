@@ -393,6 +393,8 @@ export class CrawlerService {
 
   // 从数据库中获取新闻，分页
   async getNews(size: number, page: number, sourceName?: string) {
+    let t = Date.now();
+    console.time(`getNews_t:${t}`);
     const [news, total] = await this.newsRepository.findAndCount({
       select: {
         id: true,
@@ -413,6 +415,7 @@ export class CrawlerService {
         source: { name: sourceName },
       } : undefined,
     });
+    console.timeEnd(`getNews_t:${t}`);
     return { news, total };
   }
 
