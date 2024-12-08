@@ -3,6 +3,7 @@ import { InjectRedis } from '@nestjs-modules/ioredis';
 import Redis from 'ioredis';
 import { embedOne } from '../common/ai';
 import { ONE_DAY, parseJson } from '../common/utils';
+import { v1 as uuid } from 'uuid';
 
 const indexName = 'embedding_index_384_2';
 
@@ -14,14 +15,15 @@ export class EmbeddingService {
     this.ensureEmbeddingIndex(); // 在构造函数中调用确保索引存在的方法
   }
 
-  private async setRedisJson(options: { vector: number[], id: number, text: string }) {
-    const { vector, id, text } = options;
+  private async setRedisJson(options: { vector: number[], text: string }) {
+    const { vector, text } = options;
+    const id = uuid();
     await this.redis.sendCommand(new Redis.Command('JSON.SET', [`embedding:${id}`, '$', JSON.stringify({ id, vector, text })]));
     await this.redis.pexpire(`embedding:${id}`, 3 * ONE_DAY); // Set expiration time to 3600 seconds (1 hour)
-    return 'success';
+    return id;
   }
 
-  async getRedisJson(id: number) {
+  async getRedisJson(id: string) {
     try {
       const result = await this.redis.sendCommand(new Redis.Command('JSON.GET', [`embedding:${id}`, '$'])) as Buffer;
       const jsonString = result.toString(); // Convert Buffer to string
@@ -32,13 +34,9 @@ export class EmbeddingService {
     }
   }
 
-  async saveEmbeddingFromStr(input: string, id: number) {
-    const existing = await this.getRedisJson(id);
-    if (existing) {
-      return existing;
-    }
+  async saveEmbeddingFromStr(input: string) {
     const vector = await embedOne(input);
-    await this.setRedisJson({ vector, id, text: input });
+    const id = await this.setRedisJson({ vector, text: input });
     return this.getRedisJson(id);
   }
 
@@ -89,10 +87,10 @@ export class EmbeddingService {
       const results = list.reduce((results, v, i) => {
         if (i % 2 === 0) {
           const key = v.toString(); // Convert buffer to string
-          const fields = list[i + 1].map((field) => field.toString());
+          const fields = list[i + 1].map((field: any) => field.toString());
           let score = 0;
           let text = '';
-          fields.forEach((field, i) => {
+          fields.forEach((field: any, i: number) => {
             if (field.startsWith('__vector_score')) {
               score = parseFloat(fields[i + 1]);
             } else if (field.startsWith('$')) {
@@ -112,6 +110,6 @@ export class EmbeddingService {
 
   async hasSimilar(input: string) {
     const result = await this.findClosestVector({ input, topK: 1 });
-    return result.results && result.results.length > 0 && result.results[0].score < 0.2;
+    return result && result.results && result.results.length > 0 && result.results[0].score < 0.2;
   }
 }

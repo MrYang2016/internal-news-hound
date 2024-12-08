@@ -1,9 +1,11 @@
-import { Body, Controller, Get, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query, Req } from '@nestjs/common';
 import { CrawlerService } from './crawler.service';
 import { ApiOperation, ApiExtraModels } from '@nestjs/swagger';
 import { ApiPortResult } from '../common/apiPortResult';
 import { GetNewsDto, GetNewsResponseDto, AddSourceDto } from './crawler.dto';
 import { EmbeddingService } from '../embedding/embedding.service';
+import { Request } from 'express'; // Add this import
+import { NewsType } from './crawler.service';
 
 @Controller('crawler')
 @ApiExtraModels(GetNewsDto, GetNewsResponseDto)
@@ -16,8 +18,11 @@ export class CrawlerController {
   @ApiOperation({ summary: '从数据库中获取新闻' })
   @Get('news')
   @ApiPortResult(GetNewsResponseDto)
-  async getNews(@Query() query: GetNewsDto) {
-    return this.crawlerService.getNews(query.size, query.page, query.sourceName);
+  async getNews(@Query() query: GetNewsDto, @Req() req: Request) {
+    const ip = req.headers['x-forwarded-for']
+      ? req.headers['x-forwarded-for']
+      : req.ip?.replace(/::ffff:/, '');
+    return this.crawlerService.getNews({ size: query.size, page: query.page, sourceName: query.sourceName, ip: String(ip) });
   }
 
   // add source
@@ -33,7 +38,7 @@ export class CrawlerController {
   @ApiOperation({ summary: '从本地新闻获取新闻' })
   @Get('local-news')
   @ApiPortResult()
-  async getLocalNews() {
+  async testCatchNews(): Promise<NewsType[]> {
     return this.crawlerService.fetchLatestNewsFromJavaScriptWeekly();
   }
 

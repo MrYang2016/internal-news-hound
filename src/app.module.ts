@@ -6,7 +6,7 @@ import { AppService } from './app.service';
 import { CrawlerService } from './crawler/crawler.service';
 import { CrawlerController } from './crawler/crawler.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { News, NewsSource } from './crawler/crawler.entity';
+import { News, NewsSource, Visit } from './crawler/crawler.entity';
 import { TasksService } from './job/cron.job';
 import { ScheduleModule } from '@nestjs/schedule';
 import { EmbeddingService } from './embedding/embedding.service';
@@ -42,7 +42,7 @@ console.log('env', env);
         queueLimit: 0,
       }
     }),
-    TypeOrmModule.forFeature([News, NewsSource]), // Added News entity to imports
+    TypeOrmModule.forFeature([News, NewsSource, Visit]), // Added News entity to imports
     RedisModule.forRoot({
       type: 'single',
       url: `redis://127.0.0.1:6379`,

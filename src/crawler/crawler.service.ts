@@ -12,7 +12,17 @@ import axios from 'axios';
 import { HttpsProxyAgent } from 'https-proxy-agent';
 import { EmbeddingService } from '../embedding/embedding.service';
 import { MoreThan } from 'typeorm';
-import { XMLParser, XMLBuilder, XMLValidator } from 'fast-xml-parser';
+import { XMLParser } from 'fast-xml-parser';
+import { Visit } from './crawler.entity';
+
+export interface NewsType {
+  title: string;
+  link: string;
+  summary: string;
+  time: Date | string;
+  highlight: string;
+  source: { name: string };
+}
 
 const env = process.env.NODE_ENV;
 
@@ -23,6 +33,8 @@ export class CrawlerService {
     private readonly newsRepository: Repository<News>,
     @InjectRepository(NewsSource)
     private readonly newsSourceRepository: Repository<NewsSource>,
+    @InjectRepository(Visit)
+    private readonly visitRepository: Repository<Visit>,
     private readonly embeddingService: EmbeddingService,
   ) { }
 
@@ -35,13 +47,13 @@ export class CrawlerService {
     const data = response.data;
     const $ = cheerio.load(data);
 
-    const newsItems = [];
+    const newsItems: NewsType[] = [];
 
     $('ol.relative > li').each((index, element) => {
       const title = $(element).find('h2 a').text().trim();
-      const link = $(element).find('h2 a').attr('href');
+      const link = $(element).find('h2 a').attr('href') || '';
       const summary = ''; // Assuming no summary is available in the provided structure
-      const time = $(element).find('time').attr('datetime');
+      const time = $(element).find('time').attr('datetime') || new Date();
       const highlight = '';
 
       newsItems.push({ title, link, summary, time, highlight, source: { name: 'theverge' } });
@@ -55,7 +67,7 @@ export class CrawlerService {
         return null;
       }
       v.time = new Date(v.time);
-      await this.embeddingService.saveEmbeddingFromStr(v.title + v.summary, v.id);
+      await this.embeddingService.saveEmbeddingFromStr(v.title + v.summary);
       return v;
     }))).filter(v => !!v);
 
@@ -74,11 +86,11 @@ export class CrawlerService {
     const data = response.data;
     const $ = cheerio.load(data);
 
-    const newsItems = [];
+    const newsItems: NewsType[] = [];
 
     $('.c-storiesNeonLatest_content > a').each((index, element) => {
       const title = $(element).find('h3').text().trim();
-      const link = $(element).attr('href');
+      const link = $(element).attr('href') || '';
       const summary = ''; // Assuming no summary is available in the provided structure
       const time = $(element).find('.c-storiesNeonLatest_meta').text().trim();
       const highlight = '';
@@ -94,15 +106,15 @@ export class CrawlerService {
         return null;
       }
       if (v.time) {
-        const match = v.time.match(/^(?<timeNum>\d+)\s+(?<timeType>(minutes)|(hours)|(days))\s+ago$/);
-        if (match) {
+        const match = v.time.toString().match(/^(?<timeNum>\d+)\s+(?<timeType>(minutes)|(hours)|(days))\s+ago$/);
+        if (match && match.groups) {
           v.time = new Date(Date.now() - parseInt(match.groups.timeNum) * (match.groups.timeType === 'minutes' ? 1 : match.groups.timeType === 'hours' ? 60 : (24 * 60)) * 60 * 1000);
         }
       }
       if (!(v.time instanceof Date)) {
         v.time = new Date();
       }
-      await this.embeddingService.saveEmbeddingFromStr(v.title + v.summary, v.id);
+      await this.embeddingService.saveEmbeddingFromStr(v.title + v.summary);
       return v;
     }))).filter(v => !!v);
 
@@ -121,15 +133,15 @@ export class CrawlerService {
     const data = response.data;
     const $ = cheerio.load(data);
 
-    const newsItems = [];
+    const newsItems: NewsType[] = [];
 
     let titleMap = new Map<string, boolean>();
 
     $('article').each((index, element) => {
       const title = $(element).find('h2 a').text().trim();
-      const link = $(element).find('h2 a').attr('href');
+      const link = $(element).find('h2 a').attr('href') || '';
       const summary = $(element).find('p').text().trim();
-      const time = $(element).find('time').attr('datetime');
+      const time = $(element).find('time').attr('datetime') || new Date();
       const highlight = '';
 
       if (titleMap.has(title)) {
@@ -147,7 +159,7 @@ export class CrawlerService {
         return null;
       }
       v.time = new Date(v.time);
-      await this.embeddingService.saveEmbeddingFromStr(v.title + v.summary, v.id);
+      await this.embeddingService.saveEmbeddingFromStr(v.title + v.summary);
       return v;
     }))).filter(v => !!v);
 
@@ -166,7 +178,7 @@ export class CrawlerService {
     const data = response.data;
     const $ = cheerio.load(data);
 
-    const trendingRepos = [];
+    const trendingRepos: NewsType[] = [];
 
     $('.Box-row').each((index, element) => {
       const title = $(element).find('h2 a').text().trim();
@@ -178,7 +190,8 @@ export class CrawlerService {
         link: `https://github.com${link}`,
         summary: description,
         time: new Date(),
-        source: { name: 'GitHub Trending' }
+        source: { name: 'GitHub Trending' },
+        highlight: ''
       });
     });
 
@@ -190,7 +203,7 @@ export class CrawlerService {
       if (!exist) {
         return null;
       }
-      await this.embeddingService.saveEmbeddingFromStr(repo.title + repo.summary, repo.id);
+      await this.embeddingService.saveEmbeddingFromStr(repo.title + repo.summary);
       return repo;
     }))).filter(repo => !!repo);
 
@@ -209,11 +222,11 @@ export class CrawlerService {
     const data = response.data;
     const $ = cheerio.load(data);
 
-    const newsItems = [];
+    const newsItems: NewsType[] = [];
 
     $('.wcl-item').each((index, element) => {
       const title = $(element).find('.wcl-item-title').text().trim();
-      const link = $(element).find('a').attr('href');
+      const link = $(element).find('a').attr('href') || '';
       const summary = ''; // Assuming no summary is available in the provided structure
       const time = new Date(); // Assuming current time as no time is available
       const highlight = '';
@@ -228,7 +241,7 @@ export class CrawlerService {
       if (!exist) {
         return null;
       }
-      await this.embeddingService.saveEmbeddingFromStr(v.title + v.summary, v.id);
+      await this.embeddingService.saveEmbeddingFromStr(v.title + v.summary);
       return v;
     }))).filter(v => !!v);
 
@@ -247,20 +260,21 @@ export class CrawlerService {
     const data = response.data;
     const $ = cheerio.load(data);
 
-    const newsItems = [];
+    const newsItems: NewsType[] = [];
 
     $('.display-card').each((index, element) => {
       const title = $(element).find('.display-card-title a').text().trim();
-      const link = $(element).find('.display-card-title a').attr('href');
+      const link = $(element).find('.display-card-title a').attr('href') || '';
       const summary = $(element).find('.display-card-excerpt').text().trim();
-      const time = new Date($(element).find('.article-date time').attr('datetime'));
+      const time = new Date($(element).find('.article-date time').attr('datetime') || new Date());
 
       newsItems.push({
         title,
         link: link.startsWith('http') ? link : `https://www.xda-developers.com${link}`,
         summary,
         time,
-        source: { name: 'XDA' }
+        source: { name: 'XDA' },
+        highlight: ''
       });
     });
 
@@ -271,7 +285,7 @@ export class CrawlerService {
       if (!exist) {
         return null;
       }
-      await this.embeddingService.saveEmbeddingFromStr(item.title + item.summary, item.id);
+      await this.embeddingService.saveEmbeddingFromStr(item.title + item.summary);
       return item;
     }))).filter(item => !!item);
 
@@ -290,7 +304,7 @@ export class CrawlerService {
     const data = response.data;
     const $ = cheerio.load(data);
 
-    const newsItems = [];
+    const newsItems: NewsType[] = [];
 
     // Assuming the structure of the ACM TechNews page based on the provided HTML snippet
     $('tr .mobilePadding').each((index, element) => {
@@ -305,7 +319,7 @@ export class CrawlerService {
         return;
       }
       // ; Justina Lee; David Ramli (November 25, 2024)
-      const time = new Date($time.text().trim().match(/\((.+)\)/)[1]);
+      const time = new Date($time.text().trim().match(/\((.+)\)/)?.[1] || new Date());
       const highlight = '';
 
       if (!link || !title) {
@@ -327,7 +341,7 @@ export class CrawlerService {
       if (!exist) {
         return null;
       }
-      await this.embeddingService.saveEmbeddingFromStr(v.title + v.summary, v.id);
+      await this.embeddingService.saveEmbeddingFromStr(v.title + v.summary);
       return v;
     }))).filter(v => !!v);
 
@@ -353,7 +367,7 @@ export class CrawlerService {
       const $ = cheerio.load(`<div>${xmlResult.rss.channel.item[0].description}</div>`);
 
       // Initialize an array to hold the news items
-      const newsItems = [];
+      const newsItems: NewsType[] = [];
 
       const time = new Date(xmlResult.rss.channel.item[0].pubDate) || new Date();
       $('table').each((index, element) => {
@@ -367,6 +381,7 @@ export class CrawlerService {
             link,
             summary,
             time,
+            highlight: '',
             source: { name: 'JavaScript Weekly' }
           });
         }
@@ -377,10 +392,10 @@ export class CrawlerService {
         if (!exist) {
           return null;
         }
-        await this.embeddingService.saveEmbeddingFromStr(v.title + v.summary, v.id);
+        await this.embeddingService.saveEmbeddingFromStr(v.title + v.summary);
         return v;
       }))).filter(v => !!v);
-  
+
       await this.translateNews(result);
       await this.newsRepository.save(result);
 
@@ -392,9 +407,8 @@ export class CrawlerService {
   }
 
   // 从数据库中获取新闻，分页
-  async getNews(size: number, page: number, sourceName?: string) {
-    let t = Date.now();
-    console.time(`getNews_t:${t}`);
+  async getNews(options: { size: number, page: number, sourceName?: string, ip?: string }) {
+    const { size, page, sourceName, ip } = options;
     const [news, total] = await this.newsRepository.findAndCount({
       select: {
         id: true,
@@ -415,8 +429,21 @@ export class CrawlerService {
         source: { name: sourceName },
       } : undefined,
     });
-    console.timeEnd(`getNews_t:${t}`);
+    if (ip) {
+      await this.saveVisitCount(ip);
+    }
     return { news, total };
+  }
+
+  // 根据ip保存访问次数
+  private async saveVisitCount(ip: string) {
+    const visit = await this.visitRepository.findOne({ where: { ip, time: new Date(new Date().setHours(0, 0, 0, 0)) } });
+    if (visit) {
+      visit.count += 1;
+      await this.visitRepository.save(visit);
+    } else {
+      await this.visitRepository.save({ ip, time: new Date(new Date().setHours(0, 0, 0, 0)), count: 1 });
+    }
   }
 
   private async checkNewsExists(options: { link: string, title: string, summary: string, updateTime?: boolean }) {
@@ -449,11 +476,11 @@ export class CrawlerService {
     });
     for (let i = 0; i < news.length; i++) {
       const item = news[i];
-      await this.embeddingService.saveEmbeddingFromStr(item.title + item.summary, item.id);
+      await this.embeddingService.saveEmbeddingFromStr(item.title + item.summary);
     }
   }
 
-  private async translateNews(news: News[]) {
+  private async translateNews(news: NewsType[]) {
     for (let i = 0; i < news.length; i++) {
       const item = news[i];
       const translate = await getTranslateByText({ title: item.title, summary: item.summary || '', language: 'Chinese' });

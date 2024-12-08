@@ -58,3 +58,18 @@ export class News {
   @JoinColumn({ name: 'sourceName', referencedColumnName: 'name' })
   source: NewsSource;
 }
+
+@Entity()
+export class Visit {
+  @PrimaryGeneratedColumn()
+  id: number;
+
+  @Column({ comment: 'IP', length: 100, type: 'varchar' })
+  ip: string;
+
+  @Column({ comment: '访问时间, 按天保存', type: 'datetime' })
+  time: Date;
+
+  @Column({ comment: '次数', type: 'int', default: 0 })
+  count: number;
+}
