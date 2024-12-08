@@ -37,9 +37,8 @@ export async function deepseekCreateCompletionByJson(options: {
   let aiResult = await deepseekCreateCompletion({
     messages,
   });
-  console.log({ aiResult });
   let json = parseJson(aiResult);
-  if (!json) {
+  if (!json && aiResult) {
     // ```json
     // {
     //   "text": "这许可证交给你了吗？",
@@ -64,7 +63,7 @@ export async function deepseekCreateCompletionByJson(options: {
       }
     }
   }
-  if (!json) {
+  if (!json && aiResult) {
     // 获取{}内容
     const jsonStr = aiResult.match(/[^{}]*(?<jsonStr>\{[^{}]+\})[^{}]*/);
     if (jsonStr && jsonStr.groups) {
