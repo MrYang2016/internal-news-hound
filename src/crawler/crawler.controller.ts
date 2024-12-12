@@ -38,8 +38,8 @@ export class CrawlerController {
   @ApiOperation({ summary: '从本地新闻获取新闻' })
   @Get('local-news')
   @ApiPortResult()
-  async testCatchNews(): Promise<NewsType[]> {
-    return this.crawlerService.fetchLatestNewsFromJavaScriptWeekly();
+  async getLocalNews() {
+    return this.crawlerService.fetchLatestNewsFromProductHunt();
   }
 
   // @ApiOperation({ summary: '将所有新闻设置为embedding' })

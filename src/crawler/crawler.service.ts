@@ -406,6 +406,55 @@ export class CrawlerService {
     }
   }
 
+  // https://www.producthunt.com/
+  async fetchLatestNewsFromProductHunt() {
+    const url = 'https://www.producthunt.com';
+    const proxy = 'http://127.0.0.1:1087'; // Shadowsocks 代理地址
+    const agent = new HttpsProxyAgent(proxy);
+
+    const response = await axios.get(url, env === 'local' ? { httpsAgent: agent } : {});
+    const data = response.data;
+    const $ = cheerio.load(data);
+
+    // Initialize an array to hold the product items
+    const products: NewsType[] = [];
+    
+    // Select each product section
+    $('section[data-test^="post-item"]').each((index, element) => {
+      const section = $(element).parent().attr('data-test');
+      if (section === 'homepage-section-0') {
+        return;
+      }
+      const title = $(element).find('a[data-test^="post-name"]').text().trim();
+      const link = $(element).find('a[data-test^="post-name"]').attr('href');
+      const description = $(element).find('a.text-16.font-normal').text().trim();
+    
+      // Push the product details into the products array
+      products.push({
+        title: title.replace(/^\d+\.\s*/, ''),
+        link: `https://www.producthunt.com${link}`,
+        summary: description,
+        time: new Date(),
+        highlight: '',
+        source: { name: 'Product Hunt' },
+      });
+    });
+
+    const result = (await Promise.all(products.filter(v => !!(v.title && v.link)).map(async v => {
+      const exist = await this.checkNewsExists({ link: v.link, title: v.title, summary: v.summary });
+      if (!exist) {
+        return null;
+      }
+      await this.embeddingService.saveEmbeddingFromStr(v.title + v.summary);
+      return v;
+    }))).filter(v => !!v);
+
+    await this.translateNews(result);
+    await this.newsRepository.save(result);
+
+    return products;
+  }
+
   // 从数据库中获取新闻，分页
   async getNews(options: { size: number, page: number, sourceName?: string, ip?: string }) {
     const { size, page, sourceName, ip } = options;

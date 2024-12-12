@@ -47,6 +47,9 @@ export class TasksService {
       const javaScriptWeeklyResult = await this.crawlerService.fetchLatestNewsFromJavaScriptWeekly();
       console.log({ type: 'cron', msg: 'fetchLatestNewsFromJavaScriptWeekly', result: javaScriptWeeklyResult });
 
+      const productHuntResult = await this.crawlerService.fetchLatestNewsFromProductHunt();
+      console.log({ type: 'cron', msg: 'fetchLatestNewsFromProductHunt', result: productHuntResult });
+
       // 删除一个月前的数据
       await this.newsRepository.delete({
         time: LessThan(new Date(Date.now() - ONE_MONTH))
