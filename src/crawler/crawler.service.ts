@@ -441,11 +441,10 @@ export class CrawlerService {
     });
 
     const result = (await Promise.all(products.filter(v => !!(v.title && v.link)).map(async v => {
-      const exist = await this.checkNewsExists({ link: v.link, title: v.title, summary: v.summary });
+      const exist = await this.checkNewsExists({ link: v.link, title: v.title, summary: v.summary, checkSimilar: false });
       if (!exist) {
         return null;
       }
-      await this.embeddingService.saveEmbeddingFromStr(v.title + v.summary);
       return v;
     }))).filter(v => !!v);
 
@@ -495,8 +494,8 @@ export class CrawlerService {
     }
   }
 
-  private async checkNewsExists(options: { link: string, title: string, summary: string, updateTime?: boolean }) {
-    const { link, title, summary, updateTime = false } = options;
+  private async checkNewsExists(options: { link: string, title: string, summary: string, updateTime?: boolean, checkSimilar?: boolean }) {
+    const { link, title, summary, updateTime = false, checkSimilar = true } = options;
     const news = await this.newsRepository.exists({ where: { link } });
     if (news) {
       if (updateTime) {
@@ -504,9 +503,11 @@ export class CrawlerService {
       }
       return false;
     }
-    const similar = await this.embeddingService.hasSimilar(title + summary);
-    if (similar) {
-      return false;
+    if (checkSimilar) {
+      const similar = await this.embeddingService.hasSimilar(title + summary);
+      if (similar) {
+        return false;
+      }
     }
     return true;
   }
