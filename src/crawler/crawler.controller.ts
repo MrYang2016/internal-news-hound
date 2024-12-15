@@ -1,11 +1,11 @@
-import { Body, Controller, Get, Post, Query, Req } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query, Req, Res } from '@nestjs/common';
 import { CrawlerService } from './crawler.service';
 import { ApiOperation, ApiExtraModels } from '@nestjs/swagger';
 import { ApiPortResult } from '../common/apiPortResult';
 import { GetNewsDto, GetNewsResponseDto, AddSourceDto } from './crawler.dto';
 import { EmbeddingService } from '../embedding/embedding.service';
 import { Request } from 'express'; // Add this import
-import { NewsType } from './crawler.service';
+import { Response } from 'express';
 
 @Controller('crawler')
 @ApiExtraModels(GetNewsDto, GetNewsResponseDto)
@@ -40,6 +40,16 @@ export class CrawlerController {
   @ApiPortResult()
   async getLocalNews() {
     return this.crawlerService.fetchLatestNewsFromProductHunt();
+  }
+
+  // sitemap
+  @ApiOperation({ summary: '从sitemap中获取新闻' })
+  @Get('sitemap.xml')
+  @ApiPortResult()
+  async getSitemapNews(@Res() res: Response) {
+    const xmlData = await this.crawlerService.getSitemap();
+    res.set('Content-Type', 'application/xml');
+    res.send(xmlData);
   }
 
   // @ApiOperation({ summary: '将所有新闻设置为embedding' })

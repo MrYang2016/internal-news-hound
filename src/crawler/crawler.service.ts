@@ -14,6 +14,8 @@ import { EmbeddingService } from '../embedding/embedding.service';
 import { MoreThan } from 'typeorm';
 import { XMLParser } from 'fast-xml-parser';
 import { Visit } from './crawler.entity';
+import { SitemapStream, streamToPromise } from 'sitemap';
+import { Readable } from 'stream';
 
 export interface NewsType {
   title: string;
@@ -418,7 +420,7 @@ export class CrawlerService {
 
     // Initialize an array to hold the product items
     const products: NewsType[] = [];
-    
+
     // Select each product section
     $('section[data-test^="post-item"]').each((index, element) => {
       const section = $(element).parent().attr('data-test');
@@ -428,7 +430,7 @@ export class CrawlerService {
       const title = $(element).find('a[data-test^="post-name"]').text().trim();
       const link = $(element).find('a[data-test^="post-name"]').attr('href');
       const description = $(element).find('a.text-16.font-normal').text().trim();
-    
+
       // Push the product details into the products array
       products.push({
         title: title.replace(/^\d+\.\s*/, ''),
@@ -539,5 +541,18 @@ export class CrawlerService {
         item.summary = translate.summary;
       }
     }
+  }
+
+  getSitemap() {
+    // An array with your links
+    const links = [{ url: '/', lastmod: new Date('2024-12-14 20:00:00').toISOString() }]
+
+    // Create a stream to write to
+    const stream = new SitemapStream({ hostname: 'https://it-news.aries-happy.com' })
+
+    // Return a promise that resolves with your XML string
+    return streamToPromise(Readable.from(links).pipe(stream)).then((data) =>
+      data.toString()
+    )
   }
 }
