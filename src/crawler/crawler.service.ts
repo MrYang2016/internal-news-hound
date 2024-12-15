@@ -545,7 +545,7 @@ export class CrawlerService {
 
   getSitemap() {
     // An array with your links
-    const links = [{ url: '/', lastmod: new Date('2024-12-14 20:00:00').toISOString() }]
+    const links = [{ url: '/', lastmod: new Date('2024-12-15 19:00:00').toISOString() }]
 
     // Create a stream to write to
     const stream = new SitemapStream({ hostname: 'https://it-news.aries-happy.com' })
