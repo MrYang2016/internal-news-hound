@@ -15,8 +15,6 @@
   <title>it-news</title>
   <meta name="description"
     content="A simple web app to help you find the timing to watch your favorite internet news" />
-  <script
-    type="application/ld+json">{"@context":"https://schema.org/","@type":"VideoObject","name":"Screen Recording 2024-12-16 at 15.48.28","thumbnailUrl":["https://static.kingswayvideo.com/101160411447946835957/vod/35f5dd30bb/cover.jpg?t=1734916549501"],"duration":"PT00H00M52S","uploadDate":"2024-12-16T07:56:09.000Z","contentUrl":"https://video-hls.kingswayvideo.com/101160411447946835957/35f5dd30bb/1920_1080_0.mp4/index.m3u8","description":"","interactionStatistic":{"@type":"InteractionCounter","interactionType":{"@type":"WatchAction"},"userInteractionCount":3}}</script>
   <!--preload-links-->
   <!--app-context-->
   <script type="module" crossorigin src="./assets/index-TUGyQy2d.js"></script>
@@ -25,6 +23,17 @@
 
 <body>
   <div id="app"><!--app-html--></div>
+  <script>
+    window.addEventListener("load", function () {
+      const videoObject = { "@context": "https://schema.org/", "@type": "VideoObject", "name": "Screen Recording 2024-12-16 at 15.48.28", "thumbnailUrl": ["https://static.kingswayvideo.com/101160411447946835957/vod/35f5dd30bb/cover.jpg?t=1734916549501"], "duration": "PT00H00M52S", "uploadDate": "2024-12-16T07:56:09.000Z", "contentUrl": "https://video-hls.kingswayvideo.com/101160411447946835957/35f5dd30bb/1920_1080_0.mp4/index.m3u8", "description": "", "interactionStatistic": { "@type": "InteractionCounter", "interactionType": { "@type": "WatchAction" }, "userInteractionCount": 3 } };
+
+      // 动态创建并插入 JSON-LD 数据
+      const script = document.createElement('script');
+      script.type = 'application/ld+json';
+      script.textContent = JSON.stringify(videoObject);
+      document.head.appendChild(script);
+    });
+  </script>
 </body>
 
 </html>
