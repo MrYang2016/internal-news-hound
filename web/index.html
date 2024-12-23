@@ -13,6 +13,29 @@
     </script>
     <title>it-news</title>
     <meta name="description" content="A simple web app to help you find the timing to watch your favorite internet news" />
+	<script type="application/ld+json">
+	  {
+		"@context": "https://schema.org",
+		"@type": "ITNewsArticle",
+		"headline": "Article headline",
+		"image": "https://example.org/thumbnail1.jpg",
+		"datePublished": "2025-02-05T08:00:00+08:00",
+		"dateModified": "2025-02-05T09:20:00+08:00",
+		"author": {
+		  "@type": "Person",
+		  "name": "Aries",
+		  "url": "https://github.com/MrYang2016"
+		},
+		"description": "A website to draw the timing to watch your favorite internet news",
+		"isAccessibleForFree": false,
+		"hasPart":
+		  {
+		  "@type": "WebPageElement",
+		  "isAccessibleForFree": false,
+		  "cssSelector" : ".paywall"
+		  }
+	  }
+	</script>
     <!--preload-links-->
     <!--app-context-->
     <script type="module" crossorigin src="./assets/index-TUGyQy2d.js"></script>
