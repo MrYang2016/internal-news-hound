@@ -15,6 +15,8 @@ import { ConfigModule } from '@nestjs/config';
 import { join } from 'path';
 import { ProductSuggestionController } from './product-suggestion/product-suggestion.controller';
 import { ProductSuggestionService } from './product-suggestion/product-suggestion.service';
+import { CookController } from './cook/cook.controller';
+import { CookService } from './cook/cook.service';
 
 const env = process.env.NODE_ENV;
 
@@ -51,7 +53,7 @@ console.log('env', env);
       isGlobal: true, // 使配置在整个应用程序中可用
     }),
   ],
-  controllers: [AppController, CrawlerController, ProductSuggestionController],
-  providers: [AppService, CrawlerService, TasksService, EmbeddingService, ProductSuggestionService],
+  controllers: [AppController, CrawlerController, ProductSuggestionController, CookController],
+  providers: [AppService, CrawlerService, TasksService, EmbeddingService, ProductSuggestionService, CookService],
 })
 export class AppModule { }
