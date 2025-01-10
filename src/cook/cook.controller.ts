@@ -16,8 +16,8 @@ export class CookController {
     return this.cookService.recommend(prompt);
   }
 
-  @Get('test')
-  async test(@Query('prompt') prompt: string) {
-    return this.cookService.test(prompt);
+  @Get('check-by-input')
+  async checkByInput(@Query('input') input: string) {
+    return this.cookService.checkByInput(input);
   }
 }

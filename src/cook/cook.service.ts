@@ -46,10 +46,11 @@ export class CookService {
     return aiResult;
   }
 
-  async test(prompt: string) {
+  async checkByInput(prompt: string) {
+    console.log('prompt', prompt);
     const aiResult = await deepseekCreateCompletionByJson({
       messages: [{
-        role: 'system', content: `你是一个厨师，你负责根据用户的输入，推荐一些适合吃的菜名或者菜谱`
+        role: 'system', content: `你是一个厨师，你负责根据用户的输入，判断出输入的是菜名还是菜谱，并根据判断结果输出相应的json格式`
       }, {
         role: 'user', content: `
 - 提示词input：${prompt}
@@ -81,12 +82,14 @@ if (input是菜名) {
   }
 } else {
   - 根据input，推荐一些适合吃的菜名
-  - 输出json格式：
-      [
-        '...',
-        '...',
-        '...'
-      ]
+  - 输出json格式：{
+    recommend: [
+      '...',
+      '...',
+      '...'
+    ],
+    reason: '...'
+  }
 }` }],
     });
     return aiResult;
