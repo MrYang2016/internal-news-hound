@@ -49,7 +49,7 @@ export class CookService {
     return aiResult;
   }
 
-  @Cacheable(60 * 60 * 24)
+  @Cacheable(7 * 60 * 60 * 24)
   async checkByInput(prompt: string) {
     console.log('prompt', prompt);
     const aiResult = await deepseekCreateCompletionByJson({
