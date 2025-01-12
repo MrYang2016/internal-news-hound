@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { deepseekCreateCompletionByJson } from '../common/deepseek';
 import { SitemapStream, streamToPromise } from 'sitemap';
 import { Readable } from 'stream';
+import { Cacheable } from '../common/methodCache';
 
 @Injectable()
 export class CookService {
@@ -48,6 +49,7 @@ export class CookService {
     return aiResult;
   }
 
+  @Cacheable(60 * 60 * 24)
   async checkByInput(prompt: string) {
     console.log('prompt', prompt);
     const aiResult = await deepseekCreateCompletionByJson({
