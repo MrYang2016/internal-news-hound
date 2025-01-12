@@ -1,5 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { deepseekCreateCompletionByJson } from '../common/deepseek';
+import { SitemapStream, streamToPromise } from 'sitemap';
+import { Readable } from 'stream';
 
 @Injectable()
 export class CookService {
@@ -93,5 +95,18 @@ if (input是菜名) {
 }` }],
     });
     return aiResult;
+  }
+
+  getSitemap() {
+    // An array with your links
+    const links = [{ url: '/', lastmod: new Date('2025-01-12 14:00:00').toISOString() }]
+
+    // Create a stream to write to
+    const stream = new SitemapStream({ hostname: 'https://cook.aries-happy.com/' })
+
+    // Return a promise that resolves with your XML string
+    return streamToPromise(Readable.from(links).pipe(stream)).then((data) =>
+      data.toString()
+    )
   }
 }
