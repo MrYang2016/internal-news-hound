@@ -113,7 +113,7 @@ if (input是菜名) {
       const { steps } = result;
       if (steps) {
         return {
-          url: `/${prompt}`,
+          url: `/${prompt.replace(/[/\s]/g, '-').replace(/[^\p{L}\p{N}-]/gu, '').toLocaleLowerCase()}`,
           lastmod: new Date(time).toISOString()
         }
       }
