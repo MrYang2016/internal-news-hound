@@ -108,6 +108,7 @@ if (input是菜名) {
 
   async getSitemap() {
     const cookCache = await getCache('checkByInput', this.redis);
+    console.log('cookCache', cookCache);
     const links = cookCache.map(({ args, result, time }) => {
       const [prompt] = args;
       const { steps } = result;
