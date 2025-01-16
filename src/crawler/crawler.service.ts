@@ -456,6 +456,51 @@ export class CrawlerService {
     return products;
   }
 
+  // https://news.ycombinator.com/
+  async fetchLatestNewsFromHackerNews() {
+    const url = 'https://news.ycombinator.com/';
+    const proxy = 'http://127.0.0.1:1087';
+    const agent = new HttpsProxyAgent(proxy);
+
+    const response = await axios.get(url, env === 'local' ? { httpsAgent: agent } : {});
+    const data = response.data;
+    const $ = cheerio.load(data);
+
+    const newsItems: NewsType[] = [];
+
+    $('.athing').each((index, element) => {
+      const titleElement = $(element).find('.titleline > a').first();
+      const title = titleElement.text().trim();
+      const link = titleElement.attr('href') || '';
+
+      // Get the next sibling element for metadata
+      const subtext = $(element).next();
+      const time = subtext.find('.age').attr('title') || new Date().toISOString();
+
+      newsItems.push({
+        title,
+        link: link.startsWith('http') ? link : `https://news.ycombinator.com/${link}`,
+        summary: '',
+        time: new Date(time.split(' ')[0]),
+        highlight: '',
+        source: { name: 'Hacker News' }
+      });
+    });
+
+    const result = (await Promise.all(newsItems.filter(v => !!(v.title && v.link)).map(async v => {
+      const exist = await this.checkNewsExists({ link: v.link, title: v.title, summary: v.summary });
+      if (!exist) {
+        return null;
+      }
+      await this.embeddingService.saveEmbeddingFromStr(v.title + v.summary);
+      return v;
+    }))).filter(v => !!v);
+
+    await this.translateNews(result);
+    await this.newsRepository.save(result);
+    return result;
+  }
+
   // 从数据库中获取新闻，分页
   async getNews(options: { size: number, page: number, sourceName?: string, ip?: string }) {
     const { size, page, sourceName, ip } = options;

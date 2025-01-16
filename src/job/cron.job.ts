@@ -50,6 +50,9 @@ export class TasksService {
       const productHuntResult = await this.crawlerService.fetchLatestNewsFromProductHunt();
       console.log({ type: 'cron', msg: 'fetchLatestNewsFromProductHunt', result: productHuntResult });
 
+      const globalNewsResult = await this.crawlerService.fetchLatestNewsFromHackerNews();
+      console.log({ type: 'cron', msg: 'fetchLatestNewsFromGlobalNews', result: globalNewsResult });
+
       // 删除一个月前的数据
       await this.newsRepository.delete({
         time: LessThan(new Date(Date.now() - ONE_MONTH))

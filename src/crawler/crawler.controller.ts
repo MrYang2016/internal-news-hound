@@ -39,7 +39,7 @@ export class CrawlerController {
   @Get('local-news')
   @ApiPortResult()
   async getLocalNews() {
-    return this.crawlerService.fetchLatestNewsFromProductHunt();
+    return this.crawlerService.fetchLatestNewsFromHackerNews();
   }
 
   // sitemap
