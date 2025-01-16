@@ -2,10 +2,17 @@ import { Injectable } from '@nestjs/common';
 import { deepseekCreateCompletionByJson } from '../common/deepseek';
 import { SitemapStream, streamToPromise } from 'sitemap';
 import { Readable } from 'stream';
-import { Cacheable } from '../common/methodCache';
+import { Cacheable, getCache } from '../common/methodCache';
+import { InjectRedis } from '@nestjs-modules/ioredis';
+import Redis from 'ioredis';
 
 @Injectable()
 export class CookService {
+  constructor(
+    @InjectRedis()
+    private readonly redis: Redis,
+  ) { }
+
   async cook(name: string) {
     const aiResult = await deepseekCreateCompletionByJson({
       messages: [{
@@ -49,7 +56,7 @@ export class CookService {
     return aiResult;
   }
 
-  @Cacheable(7 * 60 * 60 * 24)
+  @Cacheable(365 * 60 * 60 * 24)
   async checkByInput(prompt: string) {
     console.log('prompt', prompt);
     const aiResult = await deepseekCreateCompletionByJson({
@@ -99,9 +106,20 @@ if (input是菜名) {
     return aiResult;
   }
 
-  getSitemap() {
+  async getSitemap() {
+    const cookCache = await getCache('checkByInput', this.redis);
+    const links = cookCache.map(({ args, result, time }) => {
+      const [prompt] = args;
+      const { steps } = result;
+      if (steps) {
+        return {
+          url: `/${prompt}`,
+          lastmod: new Date(time).toISOString()
+        }
+      }
+    }).filter(v => !!v);
     // An array with your links
-    const links = [{ url: '/', lastmod: new Date('2025-01-12 14:00:00').toISOString() }]
+    links.push({ url: '/', lastmod: new Date('2025-01-12 14:00:00').toISOString() });
 
     // Create a stream to write to
     const stream = new SitemapStream({ hostname: 'https://cook.aries-happy.com/' })
