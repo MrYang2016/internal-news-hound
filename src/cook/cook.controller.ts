@@ -25,7 +25,7 @@ export class CookController {
   }
 
   @ApiOperation({ summary: '从sitemap中获取新闻' })
-  @Get('sitemap2.xml')
+  @Get('sitemap.xml')
   @ApiPortResult()
   async getSitemapNews(@Res() res: Response) {
     const xmlData = await this.cookService.getSitemap();
