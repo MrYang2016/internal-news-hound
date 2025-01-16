@@ -15,7 +15,7 @@ export class TasksService {
     private readonly newsRepository: Repository<News>,
   ) { }
 
-  @Cron(CronExpression.EVERY_2_HOURS, {
+  @Cron(CronExpression.EVERY_10_SECONDS, {
     name: 'fetchLatestNews'
   })
   async fetchLatestNews() {
