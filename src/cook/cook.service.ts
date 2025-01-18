@@ -60,6 +60,7 @@ export class CookService {
   async checkByInput(prompt: string) {
     console.log('prompt', prompt);
     const aiResult = await deepseekCreateCompletionByJson({
+      temperature: 0.7,
       messages: [{
         role: 'system', content: `你是一个厨师，你负责根据用户的输入，判断出输入的是菜名还是菜谱，并根据判断结果输出相应的json格式`
       }, {

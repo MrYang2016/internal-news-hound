@@ -19,11 +19,13 @@ if (process.env.DEEPSEEK_API_KEY) {
 
 export async function deepseekCreateCompletion(options: {
   messages: Messages[],
+  temperature?: number,
 }) {
-  const { messages } = options;
+  const { messages, temperature } = options;
   const completion = await openai.chat.completions.create({
     messages: messages.map(v => ({ role: v.role, content: v.content, name: '' })),
     model: "deepseek-chat",
+    temperature,
   });
 
   console.log(completion.choices[0].message.content);
@@ -32,10 +34,12 @@ export async function deepseekCreateCompletion(options: {
 
 export async function deepseekCreateCompletionByJson(options: {
   messages: Messages[],
+  temperature?: number,
 }) {
-  const { messages } = options;
+  const { messages, temperature } = options;
   let aiResult = await deepseekCreateCompletion({
     messages,
+    temperature,
   });
   let json = parseJson(aiResult);
   if (!json && aiResult) {
