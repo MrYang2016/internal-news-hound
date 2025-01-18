@@ -6,6 +6,7 @@ export async function getTranslateByText(options: {
   const { language, title, summary } = options;
 
   const json = await deepseekCreateCompletionByJson({
+    temperature: 1.3,
     messages: [
       {
         role: 'user',
