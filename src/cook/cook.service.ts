@@ -68,28 +68,29 @@ export class CookService {
 if (input是菜名) {
   - 根据input，输出菜谱
   - 输出json格式：
+  {
+      name: '...',
+      description: '...',
+      ingredients: [
+        { name: '...', amount: '...' },
+        { name: '...', amount: '...' },
+      ],
+      steps: [
         {
-            name: '...',
-            ingredients: [
-      { name: '...', amount: '...' },
-      { name: '...', amount: '...' },
-    ],
-    steps: [
-      {
-        title: '...',
-        description: '...',
-        reason: '...'
-      },
-      {
-        title: '...',
-        description: '...',
-        reason: '...'
-      },
-    ],
-    tips: [
-      '...',
-      '...'
-    ]
+          title: '...',
+          description: '...',
+          reason: '...'
+        },
+        {
+          title: '...',
+          description: '...',
+          reason: '...'
+        },
+      ],
+      tips: [
+        '...',
+        '...'
+      ]
   }
 } else {
   - 根据input，推荐一些适合吃的菜名
