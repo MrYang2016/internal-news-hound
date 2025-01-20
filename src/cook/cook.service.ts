@@ -5,12 +5,14 @@ import { Readable } from 'stream';
 import { Cacheable, getCache } from '../common/methodCache';
 import { InjectRedis } from '@nestjs-modules/ioredis';
 import Redis from 'ioredis';
+import { EmbeddingService } from '../embedding/embedding.service';
 
 @Injectable()
 export class CookService {
   constructor(
     @InjectRedis()
     private readonly redis: Redis,
+    private readonly embeddingService: EmbeddingService,
   ) { }
 
   async cook(name: string) {
@@ -105,6 +107,9 @@ if (input是菜名) {
   }
 }` }],
     });
+    if (aiResult && aiResult.steps) {
+      await this.embeddingService.saveEmbeddingFromStr(aiResult.name);
+    }
     return aiResult;
   }
 
@@ -114,6 +119,7 @@ if (input是菜名) {
       const [prompt] = args;
       const { steps } = result;
       if (steps) {
+        this.embeddingService.saveEmbeddingFromStr(prompt);
         return {
           url: `/${prompt.replace(/[/\s]/g, '-').replace(/[^\p{L}\p{N}-]/gu, '').toLocaleLowerCase()}`,
           lastmod: new Date(time).toISOString()

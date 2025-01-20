@@ -1,16 +1,16 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { InjectRedis } from '@nestjs-modules/ioredis';
 import Redis from 'ioredis';
 import { embedOne } from '../common/ai';
 import { ONE_DAY, parseJson } from '../common/utils';
 import { v1 as uuid } from 'uuid';
 
-const indexName = 'embedding_index_384_2';
-
 @Injectable()
 export class EmbeddingService {
   constructor(
     @InjectRedis() private readonly redis: Redis,
+    @Inject('PREFIX') private readonly prefix: string = 'embedding:',
+    @Inject('INDEX_NAME') private readonly indexName: string = 'embedding_index_384_2',
   ) {
     this.ensureEmbeddingIndex(); // 在构造函数中调用确保索引存在的方法
   }
@@ -18,14 +18,14 @@ export class EmbeddingService {
   private async setRedisJson(options: { vector: number[], text: string }) {
     const { vector, text } = options;
     const id = uuid();
-    await this.redis.sendCommand(new Redis.Command('JSON.SET', [`embedding:${id}`, '$', JSON.stringify({ id, vector, text })]));
-    await this.redis.pexpire(`embedding:${id}`, 3 * ONE_DAY); // Set expiration time to 3600 seconds (1 hour)
+    await this.redis.sendCommand(new Redis.Command('JSON.SET', [`${this.prefix}${id}`, '$', JSON.stringify({ id, vector, text })]));
+    await this.redis.pexpire(`${this.prefix}${id}`, 3 * ONE_DAY); // Set expiration time to 3600 seconds (1 hour)
     return id;
   }
 
   async getRedisJson(id: string) {
     try {
-      const result = await this.redis.sendCommand(new Redis.Command('JSON.GET', [`embedding:${id}`, '$'])) as Buffer;
+      const result = await this.redis.sendCommand(new Redis.Command('JSON.GET', [`${this.prefix}${id}`, '$'])) as Buffer;
       const jsonString = result.toString(); // Convert Buffer to string
       const parsedResult = parseJson(jsonString)?.[0]; // Parse JSON string to object
       return parsedResult.vector; // Return the vector
@@ -42,9 +42,9 @@ export class EmbeddingService {
 
   private async createEmbeddingIndex() {
     const createIndexCommand = new Redis.Command('FT.CREATE', [
-      indexName, // 索引名称
+      this.indexName, // 索引名称
       'ON', 'JSON', // 数据类型
-      'PREFIX', '1', 'embedding:', // 数据前缀
+      'PREFIX', '1', this.prefix, // 数据前缀
       'SCHEMA',
       '$.vector', 'AS', 'vector', 'VECTOR', 'FLAT', '6', 'TYPE', 'FLOAT32', 'DIM', '384', 'DISTANCE_METRIC', 'COSINE'
     ]);
@@ -54,7 +54,7 @@ export class EmbeddingService {
 
   private async ensureEmbeddingIndex() {
     try {
-      await this.redis.sendCommand(new Redis.Command('FT.INFO', [indexName]));
+      await this.redis.sendCommand(new Redis.Command('FT.INFO', [this.indexName]));
     } catch (error) {
       if (error.message.includes('Unknown index name')) {
         await this.createEmbeddingIndex();
@@ -76,7 +76,7 @@ export class EmbeddingService {
 
     // Perform the KNN search using the FT.SEARCH command
     const searchCommand = new Redis.Command('FT.SEARCH', [
-      indexName, // The name of the index
+      this.indexName, // The name of the index
       `*=>[KNN ${topK} @vector $query_vector]`, // KNN search query
       'PARAMS', '2', 'query_vector', vectorBuffer, // Parameters for the query
       'DIALECT', '2' // Use dialect 2 for the query

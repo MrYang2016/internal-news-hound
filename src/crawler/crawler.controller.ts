@@ -3,7 +3,6 @@ import { CrawlerService } from './crawler.service';
 import { ApiOperation, ApiExtraModels } from '@nestjs/swagger';
 import { ApiPortResult } from '../common/apiPortResult';
 import { GetNewsDto, GetNewsResponseDto, AddSourceDto } from './crawler.dto';
-import { EmbeddingService } from '../embedding/embedding.service';
 import { Request } from 'express'; // Add this import
 import { Response } from 'express';
 
@@ -12,7 +11,6 @@ import { Response } from 'express';
 export class CrawlerController {
   constructor(
     private readonly crawlerService: CrawlerService,
-    private readonly embeddingService: EmbeddingService,
   ) { }
 
   @ApiOperation({ summary: '从数据库中获取新闻' })
