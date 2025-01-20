@@ -117,6 +117,7 @@ if (input是菜名) {
     const aiResult = await this.checkByInput(prompt);
     if (aiResult && aiResult.steps) {
       const suggestions = await this.findByEmbedding(aiResult.name);
+      console.log('suggestions', suggestions);
       aiResult.suggestions = suggestions;
     }
     return aiResult;
