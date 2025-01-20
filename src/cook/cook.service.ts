@@ -113,6 +113,15 @@ if (input是菜名) {
     return aiResult;
   }
 
+  async getCategory(prompt: string) {
+    const aiResult = await this.checkByInput(prompt);
+    if (aiResult && aiResult.steps) {
+      const suggestions = await this.findByEmbedding(aiResult.name);
+      aiResult.suggestions = suggestions;
+    }
+    return aiResult;
+  }
+
   async getSitemap() {
     const cookCache = await getCache('checkByInput', this.redis);
     const links = cookCache.map(({ args, result, time }) => {

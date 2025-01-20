@@ -21,7 +21,7 @@ export class CookController {
 
   @Get('check-by-input')
   async checkByInput(@Query('input') input: string) {
-    return this.cookService.checkByInput(input);
+    return this.cookService.getCategory(input);
   }
 
   @ApiOperation({ summary: '从sitemap中获取新闻' })
@@ -31,10 +31,5 @@ export class CookController {
     const xmlData = await this.cookService.getSitemap();
     res.set('Content-Type', 'application/xml');
     res.send(xmlData);
-  }
-
-  @Get('find-by-embedding')
-  async findByEmbedding(@Query('input') input: string) {
-    return this.cookService.findByEmbedding(input);
   }
 }
