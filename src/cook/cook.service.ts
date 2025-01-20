@@ -136,4 +136,8 @@ if (input是菜名) {
       data.toString()
     )
   }
+
+  async findByEmbedding(input: string) {
+    return this.embeddingService.findClosestVector({ input, topK: 10 });
+  }
 }

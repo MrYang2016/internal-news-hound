@@ -32,4 +32,9 @@ export class CookController {
     res.set('Content-Type', 'application/xml');
     res.send(xmlData);
   }
+
+  @Get('find-by-embedding')
+  async findByEmbedding(@Query('input') input: string) {
+    return this.cookService.findByEmbedding(input);
+  }
 }
