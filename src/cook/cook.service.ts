@@ -119,7 +119,6 @@ if (input是菜名) {
       const [prompt] = args;
       const { steps } = result;
       if (steps) {
-        this.embeddingService.saveEmbeddingFromStr(prompt);
         return {
           url: `/${prompt.replace(/[/\s]/g, '-').replace(/[^\p{L}\p{N}-]/gu, '').toLocaleLowerCase()}`,
           lastmod: new Date(time).toISOString()
