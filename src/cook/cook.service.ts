@@ -138,6 +138,11 @@ if (input是菜名) {
   }
 
   async findByEmbedding(input: string) {
-    return this.embeddingService.findClosestVector({ input, topK: 10 });
+    const list = await this.embeddingService.findClosestVector({ input, topK: 10 });
+    if (!list) {
+      return [];
+    }
+    const result = (list.results as { text: string }[]).map(({ text }) => text);
+    return Array.from(new Set(result)).filter(v => v !== input);
   }
 }
