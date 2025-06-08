@@ -10,11 +10,11 @@ import { EmbeddingService } from 'src/embedding/embedding.service';
     EmbeddingService,
     {
       provide: 'PREFIX',
-      useValue: 'cook_embedding:'  // 你想要的前缀
+      useValue: 'cook_embedding:', // 你想要的前缀
     },
     {
       provide: 'INDEX_NAME',
-      useValue: 'cook_embedding_index_384'  // 你想要的索引名
+      useValue: 'cook_embedding_index_384', // 你想要的索引名
     },
   ],
 })

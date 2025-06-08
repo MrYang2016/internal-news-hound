@@ -6,7 +6,7 @@ import {
   OneToMany,
   ManyToOne,
   JoinColumn,
-  Index
+  Index,
 } from 'typeorm';
 
 // 新闻来源
@@ -29,7 +29,6 @@ export class NewsSource {
 }
 
 // ALTER DATABASE `你的数据库名` CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
-// @ts-ignore
 @Entity()
 @Index('Idx_source_name', ['source'])
 export class News {
@@ -53,7 +52,7 @@ export class News {
 
   // ManyToOne
   @ManyToOne(() => NewsSource, (source) => source.news, {
-    onDelete: "CASCADE",
+    onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'sourceName', referencedColumnName: 'name' })
   source: NewsSource;

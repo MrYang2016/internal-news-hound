@@ -1,5 +1,13 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNumber, Max, Min, IsString, MaxLength, IsUrl, IsOptional } from 'class-validator';
+import {
+  IsNumber,
+  Max,
+  Min,
+  IsString,
+  MaxLength,
+  IsUrl,
+  IsOptional,
+} from 'class-validator';
 import { Transform } from 'class-transformer';
 
 export class GetNewsDto {

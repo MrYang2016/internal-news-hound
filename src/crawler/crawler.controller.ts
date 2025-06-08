@@ -9,9 +9,7 @@ import { Response } from 'express';
 @Controller('crawler')
 @ApiExtraModels(GetNewsDto, GetNewsResponseDto)
 export class CrawlerController {
-  constructor(
-    private readonly crawlerService: CrawlerService,
-  ) { }
+  constructor(private readonly crawlerService: CrawlerService) {}
 
   @ApiOperation({ summary: '从数据库中获取新闻' })
   @Get('news')
@@ -20,7 +18,12 @@ export class CrawlerController {
     const ip = req.headers['x-forwarded-for']
       ? req.headers['x-forwarded-for']
       : req.ip?.replace(/::ffff:/, '');
-    return this.crawlerService.getNews({ size: query.size, page: query.page, sourceName: query.sourceName, ip: String(ip) });
+    return this.crawlerService.getNews({
+      size: query.size,
+      page: query.page,
+      sourceName: query.sourceName,
+      ip: String(ip),
+    });
   }
 
   // add source

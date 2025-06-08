@@ -14,7 +14,7 @@ export async function getCache(propertyKey: string, redis: Redis) {
   const cache = await redis.hgetall(key);
   return Object.entries(cache).map(([key, value]) => {
     const args = parseJson(key) as any[];
-    const { result, time } = parseJson(value) as { result: any, time: number };
+    const { result, time } = parseJson(value) as { result: any; time: number };
     return { args, result, time };
   });
 }
@@ -22,7 +22,7 @@ export async function getCache(propertyKey: string, redis: Redis) {
 /**
  * 方法返回结果缓存修饰器
  * @param ttl 缓存时间
- * @returns 
+ * @returns
  */
 export const Cacheable = (ttl: number) => {
   const redisInjection = InjectRedis();
@@ -47,7 +47,8 @@ export const Cacheable = (ttl: number) => {
       // }
       const result = await originalMethod.apply(this, args);
       // @ts-ignore
-      await this.redis.pipeline()
+      await this.redis
+        .pipeline()
         .hset(key, cacheKey, JSON.stringify({ result, time: Date.now() }))
         .expire(key, ttl)
         .exec();
@@ -60,15 +61,22 @@ export const Cacheable = (ttl: number) => {
 
 /**
  * 方法缓存删除
- * @param optinos 
- * @returns 
+ * @param optinos
+ * @returns
  */
-export async function delCache(optinos: { cacheKey: string, keyword?: string[], redis: Redis }) {
+export async function delCache(optinos: {
+  cacheKey: string;
+  keyword?: string[];
+  redis: Redis;
+}) {
   const { redis, keyword } = optinos;
   const cacheKey = cacheMap.get(optinos.cacheKey) || optinos.cacheKey;
   const key = `${METHOD_CACHE_RECORD}_${cacheKey}`;
   return promisify(pipeline)(
-    redis.hscanStream(key, { count: 200, match: keyword ? `*${keyword.join('*')}*` : '*' }),
+    redis.hscanStream(key, {
+      count: 200,
+      match: keyword ? `*${keyword.join('*')}*` : '*',
+    }),
     new Transform({
       objectMode: true,
       async transform(delKeys, enc, cb) {
@@ -79,8 +87,7 @@ export async function delCache(optinos: { cacheKey: string, keyword?: string[], 
         } finally {
           cb();
         }
-      }
-    })
+      },
+    }),
   );
 }
-

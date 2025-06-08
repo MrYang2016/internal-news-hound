@@ -8,24 +8,20 @@ import { News } from './crawler.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([News, NewsSource, Visit]),
-  ],
+  imports: [TypeOrmModule.forFeature([News, NewsSource, Visit])],
   controllers: [CrawlerController],
   providers: [
     CrawlerService,
     EmbeddingService,
     {
       provide: 'PREFIX',
-      useValue: 'embedding:'  // 你想要的前缀
+      useValue: 'embedding:', // 你想要的前缀
     },
     {
       provide: 'INDEX_NAME',
-      useValue: 'embedding_index_384_2'  // 你想要的索引名
+      useValue: 'embedding_index_384_2', // 你想要的索引名
     },
   ],
-  exports: [
-    CrawlerService,
-  ],
+  exports: [CrawlerService],
 })
 export class CrawlerModule {}

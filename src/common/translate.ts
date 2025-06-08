@@ -1,7 +1,9 @@
 import { deepseekCreateCompletionByJson } from './deepseek';
 
 export async function getTranslateByText(options: {
-  title: string, summary: string, language: string,
+  title: string;
+  summary: string;
+  language: string;
 }) {
   const { language, title, summary } = options;
 
@@ -15,8 +17,8 @@ export async function getTranslateByText(options: {
               "target_language": "${language}",
               "title": "${title}",
               "summary": "${summary}",
-            }`
-      }
+            }`,
+      },
     ],
   });
   if (json) {

@@ -3,7 +3,9 @@ import { ProductSuggestionService } from './product-suggestion.service';
 
 @Controller('product-suggestion')
 export class ProductSuggestionController {
-  constructor(private readonly productSuggestionService: ProductSuggestionService) { }
+  constructor(
+    private readonly productSuggestionService: ProductSuggestionService,
+  ) {}
 
   @Get('suggest')
   async suggestProducts(@Query('idea') idea: string) {

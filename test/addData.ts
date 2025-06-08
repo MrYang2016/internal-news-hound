@@ -27,16 +27,18 @@
 // 菠萝咕肉：咕肉外酥里嫩，搭配菠萝的酸甜，口感清新，是很多人的最爱，搜索量也很可观。
 // 蒜蓉粉丝蒸扇贝：扇贝鲜美，粉丝吸收了蒜蓉和扇贝的精华，口感丰富，搜索量在海鲜类菜谱中排名靠前。
 
+const str =
+  '菠萝咕肉/红烧排骨/鱼香肉丝/青椒炒杏鲍菇/西兰花炒鸡胸肉/北京烤鸭/四川火锅/广东煲汤/陕西肉夹馍/惠灵顿牛排/法式欧姆蛋/芝士培根比萨/珍珠奶茶蛋糕/黄金脆皮甜甜圈/水果拼盘/素菜炒饭/凉拌土豆片/菌菇炒火腿/糖醋排骨/菠萝咕肉/蒜蓉粉丝蒸扇贝';
 
-const str = '菠萝咕肉/红烧排骨/鱼香肉丝/青椒炒杏鲍菇/西兰花炒鸡胸肉/北京烤鸭/四川火锅/广东煲汤/陕西肉夹馍/惠灵顿牛排/法式欧姆蛋/芝士培根比萨/珍珠奶茶蛋糕/黄金脆皮甜甜圈/水果拼盘/素菜炒饭/凉拌土豆片/菌菇炒火腿/糖醋排骨/菠萝咕肉/蒜蓉粉丝蒸扇贝'
-
-const arr = str.split('/').map(item => item.trim());
+const arr = str.split('/').map((item) => item.trim());
 
 (async () => {
   for (const item of arr) {
-    const res = await fetch(`https://it-news.aries-happy.com/cook/check-by-input?input=${item}`);
+    const res = await fetch(
+      `https://it-news.aries-happy.com/cook/check-by-input?input=${item}`,
+    );
     const data = await res.json();
     console.log(item);
     console.log(data);
   }
-})()
+})();

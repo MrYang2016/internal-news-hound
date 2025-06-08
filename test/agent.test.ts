@@ -1,14 +1,14 @@
-import 'dotenv/config'
+import 'dotenv/config';
 
-import { createLlamaIndexTools } from '@agentic/llamaindex'
-import { WeatherClient } from '@agentic/stdlib'
-import { OpenAI, OpenAIAgent, FunctionTool } from 'llamaindex'
+import { createLlamaIndexTools } from '@agentic/llamaindex';
+import { WeatherClient } from '@agentic/stdlib';
+import { OpenAI, OpenAIAgent, FunctionTool } from 'llamaindex';
 
 // Custom travel decision tool
 const travelDecisionTool = new FunctionTool(
   async (args: { temperature: number }): Promise<boolean> => {
-    console.log('temperature', args.temperature)
-    return args.temperature < 24
+    console.log('temperature', args.temperature);
+    return args.temperature < 24;
   },
   {
     name: 'shouldTravel',
@@ -18,37 +18,34 @@ const travelDecisionTool = new FunctionTool(
       properties: {
         temperature: {
           type: 'number',
-          description: 'Current temperature in Celsius'
-        }
+          description: 'Current temperature in Celsius',
+        },
       },
-      required: ['temperature']
-    }
-  }
-)
+      required: ['temperature'],
+    },
+  },
+);
 
 async function main() {
-  const weather = new WeatherClient()
+  const weather = new WeatherClient();
 
-  const tools = [
-    ...createLlamaIndexTools(weather),
-    travelDecisionTool
-  ]
+  const tools = [...createLlamaIndexTools(weather), travelDecisionTool];
 
   const agent = new OpenAIAgent({
     llm: new OpenAI({
       baseURL: 'https://api.deepseek.com',
       model: 'deepseek-chat',
-      temperature: 0
+      temperature: 0,
     }),
     systemPrompt: 'You are a helpful assistant. Be as concise as possible.',
-    tools
-  })
+    tools,
+  });
 
   const response = await agent.chat({
-    message: 'Can I travel to Beijing?'
-  })
+    message: 'Can I travel to Beijing?',
+  });
 
-  console.log(response.message.content)
+  console.log(response.message.content);
 }
 
-main()
+main();

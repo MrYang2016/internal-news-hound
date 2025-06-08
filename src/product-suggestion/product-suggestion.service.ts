@@ -3,7 +3,6 @@ import { deepseekCreateCompletionByJson } from '../common/deepseek';
 
 @Injectable()
 export class ProductSuggestionService {
-
   //   XYZ 假设
   // 广泛假设: 预计目标市场中有10%的用户会使用这个产品或服务
 
@@ -18,8 +17,10 @@ export class ProductSuggestionService {
   // 根据反馈快速迭代改进
   async suggestProducts(idea: string) {
     const aiResult = await deepseekCreateCompletionByJson({
-      messages: [{
-        role: 'user', content: `当我有一个产品想法时，为了验证这个想法市场会不会买单，我会做一些预型，收集YODA来证明这个想法是否可行。预型可能没有完全实现产品。
+      messages: [
+        {
+          role: 'user',
+          content: `当我有一个产品想法时，为了验证这个想法市场会不会买单，我会做一些预型，收集YODA来证明这个想法是否可行。预型可能没有完全实现产品。
 假门预型例子：
 {
   "idea": "我想开一家书店",
@@ -55,7 +56,9 @@ export class ProductSuggestionService {
       "..."
     ]
   }
-}` }],
+}`,
+        },
+      ],
     });
     return aiResult;
   }

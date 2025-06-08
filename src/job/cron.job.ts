@@ -13,51 +13,90 @@ export class TasksService {
     private schedulerRegistry: SchedulerRegistry,
     @InjectRepository(News)
     private readonly newsRepository: Repository<News>,
-  ) { }
+  ) {}
 
   @Cron(CronExpression.EVERY_2_HOURS, {
-    name: 'fetchLatestNews'
+    name: 'fetchLatestNews',
   })
   async fetchLatestNews() {
     console.log('fetchLatestNews....');
     const job = this.schedulerRegistry.getCronJob('fetchLatestNews');
     job.stop();
     try {
-      const vergeResult = await this.crawlerService.fetchLatestNewsFromTheVerge();
-      console.log({ type: 'cron', msg: 'fetchLatestNewsFromTheVerge', result: vergeResult });
+      const vergeResult =
+        await this.crawlerService.fetchLatestNewsFromTheVerge();
+      console.log({
+        type: 'cron',
+        msg: 'fetchLatestNewsFromTheVerge',
+        result: vergeResult,
+      });
 
       // const cnetResult = await this.crawlerService.fetchLatestNewsFromCNET();
       // console.log({ type: 'cron', msg: 'fetchLatestNewsFromCNET', result: cnetResult });
 
-      const arsTechnicaResult = await this.crawlerService.fetchLatestNewsFromArsTechnica();
-      console.log({ type: 'cron', msg: 'fetchLatestNewsFromArsTechnica', result: arsTechnicaResult });
+      const arsTechnicaResult =
+        await this.crawlerService.fetchLatestNewsFromArsTechnica();
+      console.log({
+        type: 'cron',
+        msg: 'fetchLatestNewsFromArsTechnica',
+        result: arsTechnicaResult,
+      });
 
-      const githubTrendingResult = await this.crawlerService.fetchLatestNewsFromGitHubTrending();
-      console.log({ type: 'cron', msg: 'fetchLatestNewsFromGitHubTrending', result: githubTrendingResult });
+      const githubTrendingResult =
+        await this.crawlerService.fetchLatestNewsFromGitHubTrending();
+      console.log({
+        type: 'cron',
+        msg: 'fetchLatestNewsFromGitHubTrending',
+        result: githubTrendingResult,
+      });
 
-      const techRadarResult = await this.crawlerService.fetchLatestNewsFromTechRadar();
-      console.log({ type: 'cron', msg: 'fetchLatestNewsFromTechRadar', result: techRadarResult });
+      const techRadarResult =
+        await this.crawlerService.fetchLatestNewsFromTechRadar();
+      console.log({
+        type: 'cron',
+        msg: 'fetchLatestNewsFromTechRadar',
+        result: techRadarResult,
+      });
 
       // const xdaDevelopersResult = await this.crawlerService.fetchLatestNewsFromXdaDevelopers();
       // console.log({ type: 'cron', msg: 'fetchLatestNewsFromXdaDevelopers', result: xdaDevelopersResult });
 
-      const acmTechNewsResult = await this.crawlerService.fetchLatestNewsFromACMTechNews();
-      console.log({ type: 'cron', msg: 'fetchLatestNewsFromACMTechNews', result: acmTechNewsResult });
+      const acmTechNewsResult =
+        await this.crawlerService.fetchLatestNewsFromACMTechNews();
+      console.log({
+        type: 'cron',
+        msg: 'fetchLatestNewsFromACMTechNews',
+        result: acmTechNewsResult,
+      });
 
-      const javaScriptWeeklyResult = await this.crawlerService.fetchLatestNewsFromJavaScriptWeekly();
-      console.log({ type: 'cron', msg: 'fetchLatestNewsFromJavaScriptWeekly', result: javaScriptWeeklyResult });
+      const javaScriptWeeklyResult =
+        await this.crawlerService.fetchLatestNewsFromJavaScriptWeekly();
+      console.log({
+        type: 'cron',
+        msg: 'fetchLatestNewsFromJavaScriptWeekly',
+        result: javaScriptWeeklyResult,
+      });
 
-      const productHuntResult = await this.crawlerService.fetchLatestNewsFromProductHunt();
-      console.log({ type: 'cron', msg: 'fetchLatestNewsFromProductHunt', result: productHuntResult });
+      const productHuntResult =
+        await this.crawlerService.fetchLatestNewsFromProductHunt();
+      console.log({
+        type: 'cron',
+        msg: 'fetchLatestNewsFromProductHunt',
+        result: productHuntResult,
+      });
 
-      const globalNewsResult = await this.crawlerService.fetchLatestNewsFromHackerNews();
-      console.log({ type: 'cron', msg: 'fetchLatestNewsFromGlobalNews', result: globalNewsResult });
+      const globalNewsResult =
+        await this.crawlerService.fetchLatestNewsFromHackerNews();
+      console.log({
+        type: 'cron',
+        msg: 'fetchLatestNewsFromGlobalNews',
+        result: globalNewsResult,
+      });
 
       // 删除一个月前的数据
       await this.newsRepository.delete({
-        time: LessThan(new Date(Date.now() - ONE_MONTH))
+        time: LessThan(new Date(Date.now() - ONE_MONTH)),
       });
-
     } catch (error) {
       console.error({ type: 'cron', msg: 'fetchLatestNews', error });
     } finally {

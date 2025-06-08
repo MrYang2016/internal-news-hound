@@ -38,14 +38,17 @@ export class CrawlerService {
     @InjectRepository(Visit)
     private readonly visitRepository: Repository<Visit>,
     private readonly embeddingService: EmbeddingService,
-  ) { }
+  ) {}
 
   async fetchLatestNewsFromTheVerge() {
     const url = 'https://www.theverge.com';
     const proxy = 'http://127.0.0.1:1087'; // Shadowsocks 代理地址
     const agent = new HttpsProxyAgent(proxy);
 
-    const response = await axios.get(url, env === 'local' ? { httpsAgent: agent } : {});
+    const response = await axios.get(
+      url,
+      env === 'local' ? { httpsAgent: agent } : {},
+    );
     const data = response.data;
     const $ = cheerio.load(data);
 
@@ -58,20 +61,39 @@ export class CrawlerService {
       const time = $(element).find('time').attr('datetime') || new Date();
       const highlight = '';
 
-      newsItems.push({ title, link, summary, time, highlight, source: { name: 'theverge' } });
+      newsItems.push({
+        title,
+        link,
+        summary,
+        time,
+        highlight,
+        source: { name: 'theverge' },
+      });
     });
 
-    const result = (await Promise.all(newsItems.filter(v => !!(v.title && v.time && v.link)).map(async v => {
-      const link = `${url}${v.link}`;
-      v.link = link;
-      const exist = await this.checkNewsExists({ link, title: v.title, summary: v.summary });
-      if (!exist) {
-        return null;
-      }
-      v.time = new Date(v.time);
-      await this.embeddingService.saveEmbeddingFromStr(v.title + v.summary);
-      return v;
-    }))).filter(v => !!v);
+    const result = (
+      await Promise.all(
+        newsItems
+          .filter((v) => !!(v.title && v.time && v.link))
+          .map(async (v) => {
+            const link = `${url}${v.link}`;
+            v.link = link;
+            const exist = await this.checkNewsExists({
+              link,
+              title: v.title,
+              summary: v.summary,
+            });
+            if (!exist) {
+              return null;
+            }
+            v.time = new Date(v.time);
+            await this.embeddingService.saveEmbeddingFromStr(
+              v.title + v.summary,
+            );
+            return v;
+          }),
+      )
+    ).filter((v) => !!v);
 
     await this.translateNews(result);
     await this.newsRepository.save(result);
@@ -84,7 +106,10 @@ export class CrawlerService {
     const proxy = 'http://127.0.0.1:1087'; // Shadowsocks 代理地址
     const agent = new HttpsProxyAgent(proxy);
 
-    const response = await axios.get(url, env === 'local' ? { httpsAgent: agent } : {});
+    const response = await axios.get(
+      url,
+      env === 'local' ? { httpsAgent: agent } : {},
+    );
     const data = response.data;
     const $ = cheerio.load(data);
 
@@ -97,28 +122,61 @@ export class CrawlerService {
       const time = $(element).find('.c-storiesNeonLatest_meta').text().trim();
       const highlight = '';
 
-      newsItems.push({ title, link, summary, time, highlight, source: { name: 'cnet' } });
+      newsItems.push({
+        title,
+        link,
+        summary,
+        time,
+        highlight,
+        source: { name: 'cnet' },
+      });
     });
 
-    const result = (await Promise.all(newsItems.filter(v => !!(v.title && v.time && v.link)).map(async v => {
-      const link = `${url}${v.link}`;
-      v.link = link;
-      const exist = await this.checkNewsExists({ link, title: v.title, summary: v.summary });
-      if (!exist) {
-        return null;
-      }
-      if (v.time) {
-        const match = v.time.toString().match(/^(?<timeNum>\d+)\s+(?<timeType>(minutes)|(hours)|(days))\s+ago$/);
-        if (match && match.groups) {
-          v.time = new Date(Date.now() - parseInt(match.groups.timeNum) * (match.groups.timeType === 'minutes' ? 1 : match.groups.timeType === 'hours' ? 60 : (24 * 60)) * 60 * 1000);
-        }
-      }
-      if (!(v.time instanceof Date)) {
-        v.time = new Date();
-      }
-      await this.embeddingService.saveEmbeddingFromStr(v.title + v.summary);
-      return v;
-    }))).filter(v => !!v);
+    const result = (
+      await Promise.all(
+        newsItems
+          .filter((v) => !!(v.title && v.time && v.link))
+          .map(async (v) => {
+            const link = `${url}${v.link}`;
+            v.link = link;
+            const exist = await this.checkNewsExists({
+              link,
+              title: v.title,
+              summary: v.summary,
+            });
+            if (!exist) {
+              return null;
+            }
+            if (v.time) {
+              const match = v.time
+                .toString()
+                .match(
+                  /^(?<timeNum>\d+)\s+(?<timeType>(minutes)|(hours)|(days))\s+ago$/,
+                );
+              if (match && match.groups) {
+                v.time = new Date(
+                  Date.now() -
+                    parseInt(match.groups.timeNum) *
+                      (match.groups.timeType === 'minutes'
+                        ? 1
+                        : match.groups.timeType === 'hours'
+                          ? 60
+                          : 24 * 60) *
+                      60 *
+                      1000,
+                );
+              }
+            }
+            if (!(v.time instanceof Date)) {
+              v.time = new Date();
+            }
+            await this.embeddingService.saveEmbeddingFromStr(
+              v.title + v.summary,
+            );
+            return v;
+          }),
+      )
+    ).filter((v) => !!v);
 
     await this.translateNews(result);
     await this.newsRepository.save(result);
@@ -131,13 +189,16 @@ export class CrawlerService {
     const proxy = 'http://127.0.0.1:1087'; // Shadowsocks 代理地址
     const agent = new HttpsProxyAgent(proxy);
 
-    const response = await axios.get(url, env === 'local' ? { httpsAgent: agent } : {});
+    const response = await axios.get(
+      url,
+      env === 'local' ? { httpsAgent: agent } : {},
+    );
     const data = response.data;
     const $ = cheerio.load(data);
 
     const newsItems: NewsType[] = [];
 
-    let titleMap = new Map<string, boolean>();
+    const titleMap = new Map<string, boolean>();
 
     $('article').each((index, element) => {
       const title = $(element).find('h2 a').text().trim();
@@ -150,20 +211,39 @@ export class CrawlerService {
         return;
       }
       titleMap.set(title, true);
-      newsItems.push({ title, link, summary, time, highlight, source: { name: 'arstechnica' } });
+      newsItems.push({
+        title,
+        link,
+        summary,
+        time,
+        highlight,
+        source: { name: 'arstechnica' },
+      });
     });
 
-    const result = (await Promise.all(newsItems.filter(v => !!(v.title && v.time && v.link)).map(async v => {
-      const link = v.link.startsWith('http') ? v.link : `${url}${v.link}`;
-      v.link = link;
-      const exist = await this.checkNewsExists({ link, title: v.title, summary: v.summary });
-      if (!exist) {
-        return null;
-      }
-      v.time = new Date(v.time);
-      await this.embeddingService.saveEmbeddingFromStr(v.title + v.summary);
-      return v;
-    }))).filter(v => !!v);
+    const result = (
+      await Promise.all(
+        newsItems
+          .filter((v) => !!(v.title && v.time && v.link))
+          .map(async (v) => {
+            const link = v.link.startsWith('http') ? v.link : `${url}${v.link}`;
+            v.link = link;
+            const exist = await this.checkNewsExists({
+              link,
+              title: v.title,
+              summary: v.summary,
+            });
+            if (!exist) {
+              return null;
+            }
+            v.time = new Date(v.time);
+            await this.embeddingService.saveEmbeddingFromStr(
+              v.title + v.summary,
+            );
+            return v;
+          }),
+      )
+    ).filter((v) => !!v);
 
     await this.translateNews(result);
     await this.newsRepository.save(result);
@@ -176,7 +256,10 @@ export class CrawlerService {
     const proxy = 'http://127.0.0.1:1087'; // Shadowsocks 代理地址
     const agent = new HttpsProxyAgent(proxy);
 
-    const response = await axios.get(url, env === 'local' ? { httpsAgent: agent } : {});
+    const response = await axios.get(
+      url,
+      env === 'local' ? { httpsAgent: agent } : {},
+    );
     const data = response.data;
     const $ = cheerio.load(data);
 
@@ -193,21 +276,30 @@ export class CrawlerService {
         summary: description,
         time: new Date(),
         source: { name: 'GitHub Trending' },
-        highlight: ''
+        highlight: '',
       });
     });
 
     // Process and save the trending repositories
-    const result = (await Promise.all(trendingRepos.map(async repo => {
-      const exist = await this.checkNewsExists({
-        link: repo.link, title: repo.title, summary: repo.summary, updateTime: false
-      });
-      if (!exist) {
-        return null;
-      }
-      await this.embeddingService.saveEmbeddingFromStr(repo.title + repo.summary);
-      return repo;
-    }))).filter(repo => !!repo);
+    const result = (
+      await Promise.all(
+        trendingRepos.map(async (repo) => {
+          const exist = await this.checkNewsExists({
+            link: repo.link,
+            title: repo.title,
+            summary: repo.summary,
+            updateTime: false,
+          });
+          if (!exist) {
+            return null;
+          }
+          await this.embeddingService.saveEmbeddingFromStr(
+            repo.title + repo.summary,
+          );
+          return repo;
+        }),
+      )
+    ).filter((repo) => !!repo);
 
     await this.translateNews(result);
     await this.newsRepository.save(result);
@@ -220,7 +312,10 @@ export class CrawlerService {
     const proxy = 'http://127.0.0.1:1087'; // Shadowsocks 代理地址
     const agent = new HttpsProxyAgent(proxy);
 
-    const response = await axios.get(url, env === 'local' ? { httpsAgent: agent } : {});
+    const response = await axios.get(
+      url,
+      env === 'local' ? { httpsAgent: agent } : {},
+    );
     const data = response.data;
     const $ = cheerio.load(data);
 
@@ -233,19 +328,38 @@ export class CrawlerService {
       const time = new Date(); // Assuming current time as no time is available
       const highlight = '';
 
-      newsItems.push({ title, link, summary, time, highlight, source: { name: 'techradar' } });
+      newsItems.push({
+        title,
+        link,
+        summary,
+        time,
+        highlight,
+        source: { name: 'techradar' },
+      });
     });
 
-    const result = (await Promise.all(newsItems.filter(v => !!(v.title && v.link)).map(async v => {
-      const link = v.link.startsWith('http') ? v.link : `${url}${v.link}`;
-      v.link = link;
-      const exist = await this.checkNewsExists({ link, title: v.title, summary: v.summary });
-      if (!exist) {
-        return null;
-      }
-      await this.embeddingService.saveEmbeddingFromStr(v.title + v.summary);
-      return v;
-    }))).filter(v => !!v);
+    const result = (
+      await Promise.all(
+        newsItems
+          .filter((v) => !!(v.title && v.link))
+          .map(async (v) => {
+            const link = v.link.startsWith('http') ? v.link : `${url}${v.link}`;
+            v.link = link;
+            const exist = await this.checkNewsExists({
+              link,
+              title: v.title,
+              summary: v.summary,
+            });
+            if (!exist) {
+              return null;
+            }
+            await this.embeddingService.saveEmbeddingFromStr(
+              v.title + v.summary,
+            );
+            return v;
+          }),
+      )
+    ).filter((v) => !!v);
 
     await this.translateNews(result);
     await this.newsRepository.save(result);
@@ -258,7 +372,10 @@ export class CrawlerService {
     const proxy = 'http://127.0.0.1:1087'; // Shadowsocks 代理地址
     const agent = new HttpsProxyAgent(proxy);
 
-    const response = await axios.get(url, env === 'local' ? { httpsAgent: agent } : {});
+    const response = await axios.get(
+      url,
+      env === 'local' ? { httpsAgent: agent } : {},
+    );
     const data = response.data;
     const $ = cheerio.load(data);
 
@@ -268,28 +385,40 @@ export class CrawlerService {
       const title = $(element).find('.display-card-title a').text().trim();
       const link = $(element).find('.display-card-title a').attr('href') || '';
       const summary = $(element).find('.display-card-excerpt').text().trim();
-      const time = new Date($(element).find('.article-date time').attr('datetime') || new Date());
+      const time = new Date(
+        $(element).find('.article-date time').attr('datetime') || new Date(),
+      );
 
       newsItems.push({
         title,
-        link: link.startsWith('http') ? link : `https://www.xda-developers.com${link}`,
+        link: link.startsWith('http')
+          ? link
+          : `https://www.xda-developers.com${link}`,
         summary,
         time,
         source: { name: 'XDA' },
-        highlight: ''
+        highlight: '',
       });
     });
 
-    const result = (await Promise.all(newsItems.map(async item => {
-      const exist = await this.checkNewsExists({
-        link: item.link, title: item.title, summary: item.summary
-      });
-      if (!exist) {
-        return null;
-      }
-      await this.embeddingService.saveEmbeddingFromStr(item.title + item.summary);
-      return item;
-    }))).filter(item => !!item);
+    const result = (
+      await Promise.all(
+        newsItems.map(async (item) => {
+          const exist = await this.checkNewsExists({
+            link: item.link,
+            title: item.title,
+            summary: item.summary,
+          });
+          if (!exist) {
+            return null;
+          }
+          await this.embeddingService.saveEmbeddingFromStr(
+            item.title + item.summary,
+          );
+          return item;
+        }),
+      )
+    ).filter((item) => !!item);
 
     await this.translateNews(result);
     await this.newsRepository.save(result);
@@ -302,7 +431,10 @@ export class CrawlerService {
     const proxy = 'http://127.0.0.1:1087'; // Shadowsocks 代理地址
     const agent = new HttpsProxyAgent(proxy);
 
-    const response = await axios.get(url, env === 'local' ? { httpsAgent: agent } : {});
+    const response = await axios.get(
+      url,
+      env === 'local' ? { httpsAgent: agent } : {},
+    );
     const data = response.data;
     const $ = cheerio.load(data);
 
@@ -321,7 +453,12 @@ export class CrawlerService {
         return;
       }
       // ; Justina Lee; David Ramli (November 25, 2024)
-      const time = new Date($time.text().trim().match(/\((.+)\)/)?.[1] || new Date());
+      const time = new Date(
+        $time
+          .text()
+          .trim()
+          .match(/\((.+)\)/)?.[1] || new Date(),
+      );
       const highlight = '';
 
       if (!link || !title) {
@@ -334,18 +471,30 @@ export class CrawlerService {
         summary,
         time,
         highlight,
-        source: { name: 'ACM TechNews' }
+        source: { name: 'ACM TechNews' },
       });
     });
 
-    const result = (await Promise.all(newsItems.filter(v => !!(v.title && v.link)).map(async v => {
-      const exist = await this.checkNewsExists({ link: v.link, title: v.title, summary: v.summary });
-      if (!exist) {
-        return null;
-      }
-      await this.embeddingService.saveEmbeddingFromStr(v.title + v.summary);
-      return v;
-    }))).filter(v => !!v);
+    const result = (
+      await Promise.all(
+        newsItems
+          .filter((v) => !!(v.title && v.link))
+          .map(async (v) => {
+            const exist = await this.checkNewsExists({
+              link: v.link,
+              title: v.title,
+              summary: v.summary,
+            });
+            if (!exist) {
+              return null;
+            }
+            await this.embeddingService.saveEmbeddingFromStr(
+              v.title + v.summary,
+            );
+            return v;
+          }),
+      )
+    ).filter((v) => !!v);
 
     await this.translateNews(result);
     await this.newsRepository.save(result);
@@ -366,15 +515,22 @@ export class CrawlerService {
 
       // return xmlResult.rss.channel.item[0].description;
 
-      const $ = cheerio.load(`<div>${xmlResult.rss.channel.item[0].description}</div>`);
+      const $ = cheerio.load(
+        `<div>${xmlResult.rss.channel.item[0].description}</div>`,
+      );
 
       // Initialize an array to hold the news items
       const newsItems: NewsType[] = [];
 
-      const time = new Date(xmlResult.rss.channel.item[0].pubDate) || new Date();
+      const time =
+        new Date(xmlResult.rss.channel.item[0].pubDate) || new Date();
       $('table').each((index, element) => {
         const title = $(element).find('a').first().text().trim();
-        const link = $(element).find('a').first().attr('href')?.replace('/rss', '/web');
+        const link = $(element)
+          .find('a')
+          .first()
+          .attr('href')
+          ?.replace('/rss', '/web');
         const summary = $(element).find('p').first().text().trim();
 
         if (title && link && title !== 'Read on the Web') {
@@ -384,19 +540,31 @@ export class CrawlerService {
             summary,
             time,
             highlight: '',
-            source: { name: 'JavaScript Weekly' }
+            source: { name: 'JavaScript Weekly' },
           });
         }
       });
 
-      const result = (await Promise.all(newsItems.filter(v => !!(v.title && v.link)).map(async v => {
-        const exist = await this.checkNewsExists({ link: v.link, title: v.title, summary: v.summary });
-        if (!exist) {
-          return null;
-        }
-        await this.embeddingService.saveEmbeddingFromStr(v.title + v.summary);
-        return v;
-      }))).filter(v => !!v);
+      const result = (
+        await Promise.all(
+          newsItems
+            .filter((v) => !!(v.title && v.link))
+            .map(async (v) => {
+              const exist = await this.checkNewsExists({
+                link: v.link,
+                title: v.title,
+                summary: v.summary,
+              });
+              if (!exist) {
+                return null;
+              }
+              await this.embeddingService.saveEmbeddingFromStr(
+                v.title + v.summary,
+              );
+              return v;
+            }),
+        )
+      ).filter((v) => !!v);
 
       await this.translateNews(result);
       await this.newsRepository.save(result);
@@ -414,7 +582,10 @@ export class CrawlerService {
     const proxy = 'http://127.0.0.1:1087'; // Shadowsocks 代理地址
     const agent = new HttpsProxyAgent(proxy);
 
-    const response = await axios.get(url, env === 'local' ? { httpsAgent: agent } : {});
+    const response = await axios.get(
+      url,
+      env === 'local' ? { httpsAgent: agent } : {},
+    );
     const data = response.data;
     const $ = cheerio.load(data);
 
@@ -429,7 +600,10 @@ export class CrawlerService {
       }
       const title = $(element).find('a[data-test^="post-name"]').text().trim();
       const link = $(element).find('a[data-test^="post-name"]').attr('href');
-      const description = $(element).find('a.text-16.font-normal').text().trim();
+      const description = $(element)
+        .find('a.text-16.font-normal')
+        .text()
+        .trim();
 
       // Push the product details into the products array
       products.push({
@@ -442,13 +616,24 @@ export class CrawlerService {
       });
     });
 
-    const result = (await Promise.all(products.filter(v => !!(v.title && v.link)).map(async v => {
-      const exist = await this.checkNewsExists({ link: v.link, title: v.title, summary: v.summary, checkSimilar: false });
-      if (!exist) {
-        return null;
-      }
-      return v;
-    }))).filter(v => !!v);
+    const result = (
+      await Promise.all(
+        products
+          .filter((v) => !!(v.title && v.link))
+          .map(async (v) => {
+            const exist = await this.checkNewsExists({
+              link: v.link,
+              title: v.title,
+              summary: v.summary,
+              checkSimilar: false,
+            });
+            if (!exist) {
+              return null;
+            }
+            return v;
+          }),
+      )
+    ).filter((v) => !!v);
 
     await this.translateNews(result);
     await this.newsRepository.save(result);
@@ -462,7 +647,10 @@ export class CrawlerService {
     const proxy = 'http://127.0.0.1:1087';
     const agent = new HttpsProxyAgent(proxy);
 
-    const response = await axios.get(url, env === 'local' ? { httpsAgent: agent } : {});
+    const response = await axios.get(
+      url,
+      env === 'local' ? { httpsAgent: agent } : {},
+    );
     const data = response.data;
     const $ = cheerio.load(data);
 
@@ -475,26 +663,41 @@ export class CrawlerService {
 
       // Get the next sibling element for metadata
       const subtext = $(element).next();
-      const time = subtext.find('.age').attr('title') || new Date().toISOString();
+      const time =
+        subtext.find('.age').attr('title') || new Date().toISOString();
 
       newsItems.push({
         title,
-        link: link.startsWith('http') ? link : `https://news.ycombinator.com/${link}`,
+        link: link.startsWith('http')
+          ? link
+          : `https://news.ycombinator.com/${link}`,
         summary: '',
         time: new Date(time.split(' ')[0]),
         highlight: '',
-        source: { name: 'Hacker News' }
+        source: { name: 'Hacker News' },
       });
     });
 
-    const result = (await Promise.all(newsItems.filter(v => !!(v.title && v.link)).map(async v => {
-      const exist = await this.checkNewsExists({ link: v.link, title: v.title, summary: v.summary });
-      if (!exist) {
-        return null;
-      }
-      await this.embeddingService.saveEmbeddingFromStr(v.title + v.summary);
-      return v;
-    }))).filter(v => !!v);
+    const result = (
+      await Promise.all(
+        newsItems
+          .filter((v) => !!(v.title && v.link))
+          .map(async (v) => {
+            const exist = await this.checkNewsExists({
+              link: v.link,
+              title: v.title,
+              summary: v.summary,
+            });
+            if (!exist) {
+              return null;
+            }
+            await this.embeddingService.saveEmbeddingFromStr(
+              v.title + v.summary,
+            );
+            return v;
+          }),
+      )
+    ).filter((v) => !!v);
 
     await this.translateNews(result);
     await this.newsRepository.save(result);
@@ -502,7 +705,12 @@ export class CrawlerService {
   }
 
   // 从数据库中获取新闻，分页
-  async getNews(options: { size: number, page: number, sourceName?: string, ip?: string }) {
+  async getNews(options: {
+    size: number;
+    page: number;
+    sourceName?: string;
+    ip?: string;
+  }) {
     const { size, page, sourceName, ip } = options;
     const [news, total] = await this.newsRepository.findAndCount({
       select: {
@@ -520,9 +728,12 @@ export class CrawlerService {
       order: {
         time: 'DESC',
       },
-      where: sourceName && sourceName !== 'all' ? {
-        source: { name: sourceName },
-      } : undefined,
+      where:
+        sourceName && sourceName !== 'all'
+          ? {
+              source: { name: sourceName },
+            }
+          : undefined,
     });
     if (ip) {
       await this.saveVisitCount(ip);
@@ -532,17 +743,35 @@ export class CrawlerService {
 
   // 根据ip保存访问次数
   private async saveVisitCount(ip: string) {
-    const visit = await this.visitRepository.findOne({ where: { ip, time: new Date(new Date().setHours(0, 0, 0, 0)) } });
+    const visit = await this.visitRepository.findOne({
+      where: { ip, time: new Date(new Date().setHours(0, 0, 0, 0)) },
+    });
     if (visit) {
       visit.count += 1;
       await this.visitRepository.save(visit);
     } else {
-      await this.visitRepository.save({ ip, time: new Date(new Date().setHours(0, 0, 0, 0)), count: 1 });
+      await this.visitRepository.save({
+        ip,
+        time: new Date(new Date().setHours(0, 0, 0, 0)),
+        count: 1,
+      });
     }
   }
 
-  private async checkNewsExists(options: { link: string, title: string, summary: string, updateTime?: boolean, checkSimilar?: boolean }) {
-    const { link, title, summary, updateTime = false, checkSimilar = true } = options;
+  private async checkNewsExists(options: {
+    link: string;
+    title: string;
+    summary: string;
+    updateTime?: boolean;
+    checkSimilar?: boolean;
+  }) {
+    const {
+      link,
+      title,
+      summary,
+      updateTime = false,
+      checkSimilar = true,
+    } = options;
     const news = await this.newsRepository.exists({ where: { link } });
     if (news) {
       if (updateTime) {
@@ -573,14 +802,20 @@ export class CrawlerService {
     });
     for (let i = 0; i < news.length; i++) {
       const item = news[i];
-      await this.embeddingService.saveEmbeddingFromStr(item.title + item.summary);
+      await this.embeddingService.saveEmbeddingFromStr(
+        item.title + item.summary,
+      );
     }
   }
 
   private async translateNews(news: NewsType[]) {
     for (let i = 0; i < news.length; i++) {
       const item = news[i];
-      const translate = await getTranslateByText({ title: item.title, summary: item.summary || '', language: 'Chinese' });
+      const translate = await getTranslateByText({
+        title: item.title,
+        summary: item.summary || '',
+        language: 'Chinese',
+      });
       if (translate) {
         item.title = translate.title;
         item.summary = translate.summary;
@@ -590,14 +825,18 @@ export class CrawlerService {
 
   getSitemap() {
     // An array with your links
-    const links = [{ url: '/', lastmod: new Date('2024-12-15 19:00:00').toISOString() }]
+    const links = [
+      { url: '/', lastmod: new Date('2024-12-15 19:00:00').toISOString() },
+    ];
 
     // Create a stream to write to
-    const stream = new SitemapStream({ hostname: 'https://it-news.aries-happy.com' })
+    const stream = new SitemapStream({
+      hostname: 'https://it-news.aries-happy.com',
+    });
 
     // Return a promise that resolves with your XML string
     return streamToPromise(Readable.from(links).pipe(stream)).then((data) =>
-      data.toString()
-    )
+      data.toString(),
+    );
   }
 }
