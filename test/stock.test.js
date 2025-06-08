@@ -39,11 +39,11 @@ const request = async (url, params) => {
 // });
 
 // 获取基金涨幅
-// request('https://fundmobapi.eastmoney.com/FundMNewApi/FundMNPeriodIncrease', {
-//   FCODE: '100055',
-// }).then((res) => {
-//   console.log(res);
-// });
+request('https://fundmobapi.eastmoney.com/FundMNewApi/FundMNPeriodIncrease', {
+  FCODE: '100055',
+}).then((res) => {
+  console.log(res);
+});
 
 // 基金净值
 // request('https://fundcomapi.tiantianfunds.com/mm/newCore/FundVPageDiagram', {
@@ -67,12 +67,14 @@ const request = async (url, params) => {
 // });
 
 // 基金持仓
-request('https://fundmobapi.eastmoney.com/FundMNewApi/FundMNInverstPosition', {
-  FCODE: '004243',
-}).then((res) => {
-  console.log(res.Datas.fundStocks);
-  console.log(res.Datas.fundStocks.reduce((sum, item) => sum + Number(item.JZBL), 0));
-});
+// request('https://fundmobapi.eastmoney.com/FundMNewApi/FundMNInverstPosition', {
+//   FCODE: '004243',
+// }).then((res) => {
+//   console.log(res.Datas.fundStocks);
+//   console.log(
+//     res.Datas.fundStocks.reduce((sum, item) => sum + Number(item.JZBL), 0),
+//   );
+// });
 
 // request('https://fundmobapi.eastmoney.com/FundMNewApi/FundMNIVInfoMultiple', {
 //   FCODE: '004243',

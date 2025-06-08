@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { JiJinEntity } from './stock.entity';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
+import { Cacheable } from '../common/methodCache';
 
 // 基金API配置
 const fundHeaders = {
@@ -29,26 +30,77 @@ export class StockService {
   constructor(
     @InjectRepository(JiJinEntity)
     private readonly jijiRepository: Repository<JiJinEntity>,
-  ) {}
+  ) { }
 
   // 获取基金列表
+  @Cacheable(60 * 60 * 24)
   getFundList = async (page: number = 1, pageSize: number = 10) => {
+    const codes = [
+      '000043',
+      '004243',
+      '007721',
+      '012752',
+      '014002',
+      '017437',
+      '017641',
+      '017731',
+      '040046',
+      '050025',
+      '100055',
+      '162415',
+      '162719',
+      '270023',
+    ];
     const skip = (page - 1) * pageSize;
-    const [funds, total] = await this.jijiRepository.findAndCount({
-      skip,
-      take: pageSize,
-      order: {
-        code: 'ASC',
-      },
-    });
+    const funds = await Promise.all(
+      codes.slice(skip, skip + pageSize).map(this.fetchFundPerformanceForList),
+    );
 
     return {
       data: funds,
-      total,
+      total: codes.length,
       page,
       pageSize,
-      totalPages: Math.ceil(total / pageSize),
+      totalPages: Math.ceil(codes.length / pageSize),
     };
+  };
+
+  fetchFundPerformanceForList = async (fundCode: string) => {
+    try {
+      const params = new URLSearchParams({
+        ...baseData,
+        FCODE: fundCode,
+      });
+
+      const response = await fetch(
+        `https://fundmobapi.eastmoney.com/FundMNewApi/FundMNPeriodIncrease?${params.toString()}`,
+        {
+          headers: fundHeaders,
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      const Datas = data.Datas;
+      const yield1N = Datas.find((item: any) => item.title === '1N');
+      const yieldJN = Datas.find((item: any) => item.title === 'JN');
+      const { name, type } = await this.fetchFundBasicInfo(fundCode);
+      return {
+        code: fundCode,
+        name: name,
+        type: type,
+        yield1N: yield1N.syl,
+        yieldY: yieldJN.syl,
+      };
+    } catch (error) {
+      console.error('Error fetching fund performance:', error);
+      throw new Error(
+        'Failed to fetch fund performance. Please check the fund code and try again.',
+      );
+    }
   };
 
   // 获取基金收益率数据
@@ -71,17 +123,6 @@ export class StockService {
       }
 
       const data = await response.json();
-      const Datas = data.Datas;
-      const yield1N = Datas.find((item: any) => item.title === '1N');
-      const yieldY = Datas.find((item: any) => item.title === 'Y');
-      const { name, type } = await this.fetchFundBasicInfo(fundCode);
-      this.jijiRepository.save({
-        code: fundCode,
-        name: name,
-        type: type,
-        yield1N: yield1N.syl,
-        yieldY: yieldY.syl,
-      });
       return data;
     } catch (error) {
       console.error('Error fetching fund performance:', error);
