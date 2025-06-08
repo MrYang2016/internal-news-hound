@@ -30,11 +30,11 @@ export class StockService {
   constructor(
     @InjectRepository(JiJinEntity)
     private readonly jijiRepository: Repository<JiJinEntity>,
-  ) { }
+  ) {}
 
   // 获取基金列表
   @Cacheable(60 * 60 * 24)
-  getFundList = async (page: number = 1, pageSize: number = 10) => {
+  async getFundList(page: number = 1, pageSize: number = 10) {
     const codes = [
       '000043',
       '004243',
