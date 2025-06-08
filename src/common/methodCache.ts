@@ -8,6 +8,8 @@ import stringify from 'json-stable-stringify';
 
 const cacheMap = new Map<string, string>();
 
+cacheMap.set('getFundList', 'getFundList_1');
+
 export async function getCache(propertyKey: string, redis: Redis) {
   const preKey = cacheMap.get(propertyKey) || propertyKey;
   const key = `${METHOD_CACHE_RECORD}_${preKey}`;

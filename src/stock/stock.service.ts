@@ -1,7 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { JiJinEntity } from './stock.entity';
-import { Repository } from 'typeorm';
-import { InjectRepository } from '@nestjs/typeorm';
 import { Cacheable } from '../common/methodCache';
 
 // 基金API配置
@@ -27,11 +24,6 @@ const baseData = {
 
 @Injectable()
 export class StockService {
-  constructor(
-    @InjectRepository(JiJinEntity)
-    private readonly jijiRepository: Repository<JiJinEntity>,
-  ) {}
-
   // 获取基金列表
   @Cacheable(60 * 60 * 24)
   async getFundList(page: number = 1, pageSize: number = 10) {
@@ -63,7 +55,7 @@ export class StockService {
       pageSize,
       totalPages: Math.ceil(codes.length / pageSize),
     };
-  };
+  }
 
   fetchFundPerformanceForList = async (fundCode: string) => {
     try {
@@ -86,14 +78,16 @@ export class StockService {
       const data = await response.json();
       const Datas = data.Datas;
       const yield1N = Datas.find((item: any) => item.title === '1N');
-      const yieldJN = Datas.find((item: any) => item.title === 'JN');
+      const yield3N = Datas.find((item: any) => item.title === '3N');
+      const yield5N = Datas.find((item: any) => item.title === '5N');
       const { name, type } = await this.fetchFundBasicInfo(fundCode);
       return {
         code: fundCode,
         name: name,
         type: type,
         yield1N: yield1N.syl,
-        yieldY: yieldJN.syl,
+        yield3N: yield3N.syl,
+        yield5N: yield5N.syl,
       };
     } catch (error) {
       console.error('Error fetching fund performance:', error);
