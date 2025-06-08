@@ -14,6 +14,9 @@ import { ProductSuggestionController } from './product-suggestion/product-sugges
 import { ProductSuggestionService } from './product-suggestion/product-suggestion.service';
 import { CookModule } from './cook/cook.module';
 import { CrawlerModule } from './crawler/crawler.module';
+import { StockController } from './stock/stock.controller';
+import { StockService } from './stock/stock.service';
+import { JiJinEntity } from './stock/stock.entity';
 
 const env = process.env.NODE_ENV;
 
@@ -27,7 +30,7 @@ console.log('env', env);
       host: '127.0.0.1',
       port: 3306,
       username: 'root',
-      password: env === 'local' ? '' : (process.env.MYSQL_PASSWORD || ''),
+      password: env === 'local' ? '' : process.env.MYSQL_PASSWORD || '',
       database: 'news_hound',
       charset: 'utf8mb4',
       dateStrings: true,
@@ -36,10 +39,10 @@ console.log('env', env);
       migrations: [join(__dirname, 'migrations', '*.{ts,js}')],
       synchronize: true,
       extra: {
-        connectionLimit: 10,  // 连接池的最大连接数
+        connectionLimit: 10, // 连接池的最大连接数
         waitForConnections: true,
         queueLimit: 0,
-      }
+      },
     }),
     // Added News entity to imports
     RedisModule.forRoot({
@@ -51,13 +54,9 @@ console.log('env', env);
     }),
     CookModule,
     CrawlerModule,
-    TypeOrmModule.forFeature([News, NewsSource, Visit]),
+    TypeOrmModule.forFeature([News, NewsSource, Visit, JiJinEntity]),
   ],
-  controllers: [AppController, ProductSuggestionController],
-  providers: [
-    AppService,
-    TasksService,
-    ProductSuggestionService,
-  ],
+  controllers: [AppController, ProductSuggestionController, StockController],
+  providers: [AppService, TasksService, ProductSuggestionService, StockService],
 })
-export class AppModule { }
+export class AppModule {}

@@ -22,6 +22,8 @@
     "pm2-dev": "git pull && npm run build && pm2 startOrRestart app.json --env development"
   },
   "dependencies": {
+    "@agentic/llamaindex": "^7.6.4",
+    "@agentic/stdlib": "^7.6.4",
     "@azure/openai": "^1.0.0-beta.12",
     "@nestjs-modules/ioredis": "^2.0.2",
     "@nestjs/common": "^10.0.0",
@@ -42,11 +44,13 @@
     "ip": "^2.0.1",
     "json-parse-better-errors": "^1.0.2",
     "json-stable-stringify": "^1.2.1",
-    "mysql": "^2.18.1",
+    "llamaindex": "^0.9.19",
+    "mysql2": "^3.14.1",
     "openai": "^4.73.0",
     "reflect-metadata": "^0.2.0",
     "rxjs": "^7.8.1",
     "sitemap": "^8.0.0",
+    "tiantian-fund-api": "^1.0.3",
     "uuid": "^11.0.3"
   },
   "devDependencies": {

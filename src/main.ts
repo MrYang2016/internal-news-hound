@@ -16,11 +16,13 @@ async function bootstrap() {
     callback(null, { origin: '*' });
   });
 
-  app.useGlobalPipes(new ValidationPipe({
-    whitelist: true, // Remove non-whitelisted properties
-    forbidNonWhitelisted: true, // Throw an error if non-whitelisted properties are present
-    transform: true, // Automatically transform incoming JSON to DTO objects
-  }));
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true, // Remove non-whitelisted properties
+      forbidNonWhitelisted: true, // Throw an error if non-whitelisted properties are present
+      transform: true, // Automatically transform incoming JSON to DTO objects
+    }),
+  );
 
   // swagger
   if (!env || ['development', 'test', 'local'].includes(env)) {
