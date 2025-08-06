@@ -33,12 +33,7 @@ export class TasksService {
     const endTimeInMinutes = 8 * 60 + 30; // 08:30
 
     // 打印当前时间
-    console.log(
-      '当前北京时间:',
-      beijingTime.toISOString(),
-      '本地显示:',
-      beijingTime.toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' }),
-    );
+    console.log(`hours:${hours},minutes:${minutes}`);
 
     return (
       currentTimeInMinutes >= startTimeInMinutes &&
