@@ -15,11 +15,43 @@ export class TasksService {
     private readonly newsRepository: Repository<News>,
   ) {}
 
-  @Cron(CronExpression.EVERY_2_HOURS, {
+  /**
+   * 检查当前是否在北京时间 00:30-08:30 期间
+   * @returns {boolean} 是否在允许的时间范围内
+   */
+  private isWithinAllowedTimeRange(): boolean {
+    // 获取北京时间
+    const beijingTime = new Date(
+      new Date().toLocaleString('en-US', { timeZone: 'Asia/Shanghai' }),
+    );
+    const hours = beijingTime.getHours();
+    const minutes = beijingTime.getMinutes();
+
+    // 转换为分钟数便于比较
+    const currentTimeInMinutes = hours * 60 + minutes;
+    const startTimeInMinutes = 0 * 60 + 30; // 00:30
+    const endTimeInMinutes = 8 * 60 + 30; // 08:30
+
+    return (
+      currentTimeInMinutes >= startTimeInMinutes &&
+      currentTimeInMinutes <= endTimeInMinutes
+    );
+  }
+
+  @Cron(CronExpression.EVERY_10_SECONDS, {
     name: 'fetchLatestNews',
   })
   async fetchLatestNews() {
     console.log('fetchLatestNews....');
+
+    // 检查是否在允许的时间范围内
+    if (!this.isWithinAllowedTimeRange()) {
+      console.log(
+        'fetchLatestNews: 当前时间不在允许范围内 (北京时间 00:30-08:30)，跳过执行',
+      );
+      return;
+    }
+
     const job = this.schedulerRegistry.getCronJob('fetchLatestNews');
     job.stop();
     try {
