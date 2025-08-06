@@ -13,7 +13,7 @@ export class TasksService {
     private schedulerRegistry: SchedulerRegistry,
     @InjectRepository(News)
     private readonly newsRepository: Repository<News>,
-  ) { }
+  ) {}
 
   /**
    * 检查当前是否在北京时间 00:30-08:30 期间
