@@ -13,7 +13,7 @@ export class TasksService {
     private schedulerRegistry: SchedulerRegistry,
     @InjectRepository(News)
     private readonly newsRepository: Repository<News>,
-  ) {}
+  ) { }
 
   /**
    * 检查当前是否在北京时间 00:30-08:30 期间
@@ -31,6 +31,14 @@ export class TasksService {
     const currentTimeInMinutes = hours * 60 + minutes;
     const startTimeInMinutes = 0 * 60 + 30; // 00:30
     const endTimeInMinutes = 8 * 60 + 30; // 08:30
+
+    // 打印当前时间
+    console.log(
+      '当前北京时间:',
+      beijingTime.toISOString(),
+      '本地显示:',
+      beijingTime.toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' }),
+    );
 
     return (
       currentTimeInMinutes >= startTimeInMinutes &&
