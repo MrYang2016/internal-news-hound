@@ -32,16 +32,13 @@ export class TasksService {
     const startTimeInMinutes = 0 * 60 + 30; // 00:30
     const endTimeInMinutes = 8 * 60 + 30; // 08:30
 
-    // 打印当前时间
-    console.log(`hours:${hours},minutes:${minutes}`);
-
     return (
       currentTimeInMinutes >= startTimeInMinutes &&
       currentTimeInMinutes <= endTimeInMinutes
     );
   }
 
-  @Cron(CronExpression.EVERY_10_SECONDS, {
+  @Cron(CronExpression.EVERY_2_HOURS, {
     name: 'fetchLatestNews',
   })
   async fetchLatestNews() {
