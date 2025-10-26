@@ -10,7 +10,6 @@ import { ONE_DAY } from '../common/utils';
 import { AddSourceDto } from './crawler.dto';
 import axios from 'axios';
 import { HttpsProxyAgent } from 'https-proxy-agent';
-import { EmbeddingService } from '../embedding/embedding.service';
 import { MoreThan } from 'typeorm';
 import { XMLParser } from 'fast-xml-parser';
 import { Visit } from './crawler.entity';
@@ -37,7 +36,6 @@ export class CrawlerService {
     private readonly newsSourceRepository: Repository<NewsSource>,
     @InjectRepository(Visit)
     private readonly visitRepository: Repository<Visit>,
-    private readonly embeddingService: EmbeddingService,
   ) {}
 
   async fetchLatestNewsFromTheVerge() {
@@ -87,9 +85,6 @@ export class CrawlerService {
               return null;
             }
             v.time = new Date(v.time);
-            await this.embeddingService.saveEmbeddingFromStr(
-              v.title + v.summary,
-            );
             return v;
           }),
       )
@@ -170,9 +165,6 @@ export class CrawlerService {
             if (!(v.time instanceof Date)) {
               v.time = new Date();
             }
-            await this.embeddingService.saveEmbeddingFromStr(
-              v.title + v.summary,
-            );
             return v;
           }),
       )
@@ -237,9 +229,6 @@ export class CrawlerService {
               return null;
             }
             v.time = new Date(v.time);
-            await this.embeddingService.saveEmbeddingFromStr(
-              v.title + v.summary,
-            );
             return v;
           }),
       )
@@ -293,9 +282,6 @@ export class CrawlerService {
           if (!exist) {
             return null;
           }
-          await this.embeddingService.saveEmbeddingFromStr(
-            repo.title + repo.summary,
-          );
           return repo;
         }),
       )
@@ -353,9 +339,6 @@ export class CrawlerService {
             if (!exist) {
               return null;
             }
-            await this.embeddingService.saveEmbeddingFromStr(
-              v.title + v.summary,
-            );
             return v;
           }),
       )
@@ -412,9 +395,6 @@ export class CrawlerService {
           if (!exist) {
             return null;
           }
-          await this.embeddingService.saveEmbeddingFromStr(
-            item.title + item.summary,
-          );
           return item;
         }),
       )
@@ -488,9 +468,6 @@ export class CrawlerService {
             if (!exist) {
               return null;
             }
-            await this.embeddingService.saveEmbeddingFromStr(
-              v.title + v.summary,
-            );
             return v;
           }),
       )
@@ -558,9 +535,6 @@ export class CrawlerService {
               if (!exist) {
                 return null;
               }
-              await this.embeddingService.saveEmbeddingFromStr(
-                v.title + v.summary,
-              );
               return v;
             }),
         )
@@ -691,9 +665,6 @@ export class CrawlerService {
             if (!exist) {
               return null;
             }
-            await this.embeddingService.saveEmbeddingFromStr(
-              v.title + v.summary,
-            );
             return v;
           }),
       )
@@ -779,33 +750,12 @@ export class CrawlerService {
       }
       return false;
     }
-    if (checkSimilar) {
-      const similar = await this.embeddingService.hasSimilar(title + summary);
-      if (similar) {
-        return false;
-      }
-    }
     return true;
   }
 
   // 添加新闻来源
   async addSource(source: AddSourceDto) {
     return this.newsSourceRepository.upsert(source, ['name']);
-  }
-
-  async setAllNewsToEmbedding() {
-    const news = await this.newsRepository.find({
-      // 前三天
-      where: {
-        time: MoreThan(new Date(Date.now() - 3 * ONE_DAY)),
-      },
-    });
-    for (let i = 0; i < news.length; i++) {
-      const item = news[i];
-      await this.embeddingService.saveEmbeddingFromStr(
-        item.title + item.summary,
-      );
-    }
   }
 
   private async translateNews(news: NewsType[]) {

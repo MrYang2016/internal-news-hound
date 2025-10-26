@@ -52,30 +52,4 @@ export class CrawlerController {
     res.set('Content-Type', 'application/xml');
     res.send(xmlData);
   }
-
-  // @ApiOperation({ summary: '将所有新闻设置为embedding' })
-  // @Get('set-all-news-to-embedding')
-  // @ApiPortResult()
-  // async setAllNewsToEmbedding() {
-  //   this.crawlerService.setAllNewsToEmbedding();
-  //   return 'ok';
-  // }
-
-  // @Get('get-redis-json')
-  // @ApiOperation({ summary: '从Redis中获取JSON数据' })
-  // async getRedisJson(@Query('id') id: number) {
-  //   return this.embeddingService.getRedisJson(id);
-  // }
-
-  // @Get('set-redis-json')
-  // @ApiOperation({ summary: '从Redis中获取JSON数据' })
-  // async setRedisJson(@Query('id') id: number, @Query('input') input: string) {
-  //   return this.embeddingService.saveEmbeddingFromStr(input, parseInt(String(id)));
-  // }
-
-  // @Get('find-similar')
-  // @ApiOperation({ summary: '查找相似新闻' })
-  // async findSimilar(@Query('input') input: string) {
-  //   return this.embeddingService.findClosestVector({ input, topK: 1 });
-  // }
 }

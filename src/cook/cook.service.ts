@@ -5,14 +5,12 @@ import { Readable } from 'stream';
 import { Cacheable, getCache } from '../common/methodCache';
 import { InjectRedis } from '@nestjs-modules/ioredis';
 import Redis from 'ioredis';
-import { EmbeddingService } from '../embedding/embedding.service';
 
 @Injectable()
 export class CookService {
   constructor(
     @InjectRedis()
     private readonly redis: Redis,
-    private readonly embeddingService: EmbeddingService,
   ) {}
 
   async cook(name: string) {
@@ -121,18 +119,11 @@ if (input是菜名) {
         },
       ],
     });
-    if (aiResult && aiResult.steps) {
-      await this.embeddingService.saveEmbeddingFromStr(aiResult.name);
-    }
     return aiResult;
   }
 
   async getCategory(prompt: string) {
     const aiResult = await this.checkByInput(prompt);
-    if (aiResult && aiResult.steps) {
-      const suggestions = await this.findByEmbedding(aiResult.name);
-      aiResult.suggestions = suggestions;
-    }
     return aiResult;
   }
 
@@ -168,17 +159,5 @@ if (input是菜名) {
     return streamToPromise(Readable.from(links).pipe(stream)).then((data) =>
       data.toString(),
     );
-  }
-
-  async findByEmbedding(input: string) {
-    const list = await this.embeddingService.findClosestVector({
-      input,
-      topK: 10,
-    });
-    if (!list) {
-      return [];
-    }
-    const result = (list.results as { text: string }[]).map(({ text }) => text);
-    return Array.from(new Set(result)).filter((v) => v !== input);
   }
 }
