@@ -24,12 +24,60 @@
 
 ## Description
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+News Hound - A NestJS application for crawling and managing tech news with AI-powered features.
+
+**Storage**: This project uses Supabase (Postgres) for database storage and in-memory caching.  
+See [SUPABASE_SETUP.md](./SUPABASE_SETUP.md) for configuration details.
 
 ## Project setup
 
 ```bash
 $ npm install
+```
+
+## Start Supabase (Local Development)
+
+Before running the application, start Supabase using the CLI:
+
+```bash
+# Start Supabase (this will start all necessary Docker containers)
+supabase start
+
+# Check status
+supabase status
+
+# Stop Supabase when done
+supabase stop
+```
+
+The Supabase CLI will automatically manage all Docker containers and port mappings based on `supabase/config.toml`.
+
+## Environment Configuration
+
+Create a `.env` file in the root directory with Supabase credentials:
+
+**For Local Supabase:**
+```env
+SUPABASE_URL=http://127.0.0.1:54321
+SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0
+SUPABASE_DB_HOST=127.0.0.1
+SUPABASE_DB_PORT=54322
+SUPABASE_DB_USER=postgres
+SUPABASE_DB_PASSWORD=postgres
+SUPABASE_DB_NAME=postgres
+NODE_ENV=local
+```
+
+**For Cloud Supabase:**
+```env
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_ANON_KEY=your-anon-key
+SUPABASE_DB_HOST=db.your-project.supabase.co
+SUPABASE_DB_PORT=5432
+SUPABASE_DB_USER=postgres
+SUPABASE_DB_PASSWORD=your-database-password
+SUPABASE_DB_NAME=postgres
+NODE_ENV=local
 ```
 
 ## Compile and run the project

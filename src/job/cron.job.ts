@@ -21,21 +21,22 @@ export class TasksService {
    */
   private isWithinAllowedTimeRange(): boolean {
     // 获取北京时间
-    const beijingTime = new Date(
-      new Date().toLocaleString('en-US', { timeZone: 'Asia/Shanghai' }),
-    );
-    const hours = beijingTime.getHours();
-    const minutes = beijingTime.getMinutes();
+    // const beijingTime = new Date(
+    //   new Date().toLocaleString('en-US', { timeZone: 'Asia/Shanghai' }),
+    // );
+    // const hours = beijingTime.getHours();
+    // const minutes = beijingTime.getMinutes();
 
-    // 转换为分钟数便于比较
-    const currentTimeInMinutes = hours * 60 + minutes;
-    const startTimeInMinutes = 0 * 60 + 30; // 00:30
-    const endTimeInMinutes = 8 * 60 + 30; // 08:30
+    // // 转换为分钟数便于比较
+    // const currentTimeInMinutes = hours * 60 + minutes;
+    // const startTimeInMinutes = 0 * 60 + 30; // 00:30
+    // const endTimeInMinutes = 8 * 60 + 30; // 08:30
 
-    return (
-      currentTimeInMinutes >= startTimeInMinutes &&
-      currentTimeInMinutes <= endTimeInMinutes
-    );
+    // return (
+    //   currentTimeInMinutes >= startTimeInMinutes &&
+    //   currentTimeInMinutes <= endTimeInMinutes
+    // );
+    return true;
   }
 
   @Cron(CronExpression.EVERY_2_HOURS, {
@@ -117,13 +118,13 @@ export class TasksService {
         result: productHuntResult,
       });
 
-      const globalNewsResult =
-        await this.crawlerService.fetchLatestNewsFromHackerNews();
-      console.log({
-        type: 'cron',
-        msg: 'fetchLatestNewsFromGlobalNews',
-        result: globalNewsResult,
-      });
+      // const globalNewsResult =
+      //   await this.crawlerService.fetchLatestNewsFromHackerNews();
+      // console.log({
+      //   type: 'cron',
+      //   msg: 'fetchLatestNewsFromGlobalNews',
+      //   result: globalNewsResult,
+      // });
 
       // 删除一个月前的数据
       await this.newsRepository.delete({

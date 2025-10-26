@@ -16,11 +16,11 @@ export class NewsSource {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ comment: '名称', length: 100, type: 'varchar' })
+  @Column({ comment: '名称', length: 100 })
   name: string;
 
   // 官网
-  @Column({ comment: '官网', length: 2000, type: 'varchar' })
+  @Column({ comment: '官网', length: 2000 })
   website: string;
 
   // OneToMany
@@ -28,26 +28,25 @@ export class NewsSource {
   news: News[];
 }
 
-// ALTER DATABASE `你的数据库名` CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 @Entity()
 @Index('Idx_source_name', ['source'])
 export class News {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ comment: '标题', length: 2000, type: 'varchar' })
+  @Column({ comment: '标题', length: 2000 })
   title: string;
 
-  @Column({ comment: '链接', length: 2000, type: 'varchar' })
+  @Column({ comment: '链接', length: 2000 })
   link: string;
 
-  @Column({ comment: '摘要', length: 2000, type: 'varchar' })
+  @Column({ comment: '摘要', length: 2000 })
   summary: string;
 
-  @Column({ comment: '时间', type: 'datetime' })
+  @Column({ comment: '时间', type: 'timestamp' })
   time: Date;
 
-  @Column({ comment: '高亮', length: 100, type: 'varchar', default: '' })
+  @Column({ comment: '高亮', length: 100, default: '' })
   highlight: string;
 
   // ManyToOne
@@ -63,12 +62,12 @@ export class Visit {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ comment: 'IP', length: 100, type: 'varchar' })
+  @Column({ comment: 'IP', length: 100 })
   ip: string;
 
-  @Column({ comment: '访问时间, 按天保存', type: 'datetime' })
+  @Column({ comment: '访问时间, 按天保存', type: 'timestamp' })
   time: Date;
 
-  @Column({ comment: '次数', type: 'int', default: 0 })
+  @Column({ comment: '次数', type: 'integer', default: 0 })
   count: number;
 }

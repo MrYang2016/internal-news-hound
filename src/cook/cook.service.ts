@@ -3,15 +3,10 @@ import { deepseekCreateCompletionByJson } from '../common/deepseek';
 import { SitemapStream, streamToPromise } from 'sitemap';
 import { Readable } from 'stream';
 import { Cacheable, getCache } from '../common/methodCache';
-import { InjectRedis } from '@nestjs-modules/ioredis';
-import Redis from 'ioredis';
 
 @Injectable()
 export class CookService {
-  constructor(
-    @InjectRedis()
-    private readonly redis: Redis,
-  ) {}
+  constructor() {}
 
   async cook(name: string) {
     const aiResult = await deepseekCreateCompletionByJson({
@@ -128,7 +123,7 @@ if (input是菜名) {
   }
 
   async getSitemap() {
-    const cookCache = await getCache('checkByInput', this.redis);
+    const cookCache = await getCache('checkByInput');
     const links = cookCache
       .map(({ args, result, time }) => {
         const [prompt] = args;

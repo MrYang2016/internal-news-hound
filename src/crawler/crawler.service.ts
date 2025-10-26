@@ -6,11 +6,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { News, NewsSource } from './crawler.entity';
 import { getTranslateByText } from '../common/translate';
-import { ONE_DAY } from '../common/utils';
 import { AddSourceDto } from './crawler.dto';
-import axios from 'axios';
-import { HttpsProxyAgent } from 'https-proxy-agent';
-import { MoreThan } from 'typeorm';
 import { XMLParser } from 'fast-xml-parser';
 import { Visit } from './crawler.entity';
 import { SitemapStream, streamToPromise } from 'sitemap';
@@ -25,8 +21,6 @@ export interface NewsType {
   source: { name: string };
 }
 
-const env = process.env.NODE_ENV;
-
 @Injectable()
 export class CrawlerService {
   constructor(
@@ -38,16 +32,15 @@ export class CrawlerService {
     private readonly visitRepository: Repository<Visit>,
   ) {}
 
+  // Helper function to fetch with proxy support
+  private async fetchWithProxy(url: string): Promise<string> {
+    const response = await fetch(url);
+    return await response.text();
+  }
+
   async fetchLatestNewsFromTheVerge() {
     const url = 'https://www.theverge.com';
-    const proxy = 'http://127.0.0.1:1087'; // Shadowsocks 代理地址
-    const agent = new HttpsProxyAgent(proxy);
-
-    const response = await axios.get(
-      url,
-      env === 'local' ? { httpsAgent: agent } : {},
-    );
-    const data = response.data;
+    const data = await this.fetchWithProxy(url);
     const $ = cheerio.load(data);
 
     const newsItems: NewsType[] = [];
@@ -98,14 +91,7 @@ export class CrawlerService {
   // https://www.cnet.com/
   async fetchLatestNewsFromCNET() {
     const url = 'https://www.cnet.com';
-    const proxy = 'http://127.0.0.1:1087'; // Shadowsocks 代理地址
-    const agent = new HttpsProxyAgent(proxy);
-
-    const response = await axios.get(
-      url,
-      env === 'local' ? { httpsAgent: agent } : {},
-    );
-    const data = response.data;
+    const data = await this.fetchWithProxy(url);
     const $ = cheerio.load(data);
 
     const newsItems: NewsType[] = [];
@@ -126,6 +112,12 @@ export class CrawlerService {
         source: { name: 'cnet' },
       });
     });
+
+    // Ensure GitHub source exists in database
+    await this.newsSourceRepository.upsert(
+      { name: 'cnet', website: url },
+      ['name']
+    );
 
     const result = (
       await Promise.all(
@@ -178,14 +170,7 @@ export class CrawlerService {
   // https://arstechnica.com/
   async fetchLatestNewsFromArsTechnica() {
     const url = 'https://arstechnica.com';
-    const proxy = 'http://127.0.0.1:1087'; // Shadowsocks 代理地址
-    const agent = new HttpsProxyAgent(proxy);
-
-    const response = await axios.get(
-      url,
-      env === 'local' ? { httpsAgent: agent } : {},
-    );
-    const data = response.data;
+    const data = await this.fetchWithProxy(url);
     const $ = cheerio.load(data);
 
     const newsItems: NewsType[] = [];
@@ -212,6 +197,12 @@ export class CrawlerService {
         source: { name: 'arstechnica' },
       });
     });
+
+    // Ensure GitHub source exists in database
+    await this.newsSourceRepository.upsert(
+      { name: 'arstechnica', website: url },
+      ['name']
+    );
 
     const result = (
       await Promise.all(
@@ -242,14 +233,7 @@ export class CrawlerService {
   // https://github.com/trending
   async fetchLatestNewsFromGitHubTrending() {
     const url = 'https://github.com/trending';
-    const proxy = 'http://127.0.0.1:1087'; // Shadowsocks 代理地址
-    const agent = new HttpsProxyAgent(proxy);
-
-    const response = await axios.get(
-      url,
-      env === 'local' ? { httpsAgent: agent } : {},
-    );
-    const data = response.data;
+    const data = await this.fetchWithProxy(url);
     const $ = cheerio.load(data);
 
     const trendingRepos: NewsType[] = [];
@@ -268,6 +252,12 @@ export class CrawlerService {
         highlight: '',
       });
     });
+
+    // Ensure GitHub source exists in database
+    await this.newsSourceRepository.upsert(
+      { name: 'github-trending', website: url },
+      ['name']
+    );
 
     // Process and save the trending repositories
     const result = (
@@ -295,14 +285,7 @@ export class CrawlerService {
   // https://www.techradar.com/
   async fetchLatestNewsFromTechRadar() {
     const url = 'https://www.techradar.com';
-    const proxy = 'http://127.0.0.1:1087'; // Shadowsocks 代理地址
-    const agent = new HttpsProxyAgent(proxy);
-
-    const response = await axios.get(
-      url,
-      env === 'local' ? { httpsAgent: agent } : {},
-    );
-    const data = response.data;
+    const data = await this.fetchWithProxy(url);
     const $ = cheerio.load(data);
 
     const newsItems: NewsType[] = [];
@@ -323,6 +306,12 @@ export class CrawlerService {
         source: { name: 'techradar' },
       });
     });
+
+    // Ensure GitHub source exists in database
+    await this.newsSourceRepository.upsert(
+      { name: 'techradar', website: url },
+      ['name']
+    );
 
     const result = (
       await Promise.all(
@@ -352,14 +341,7 @@ export class CrawlerService {
   // https://www.xda-developers.com/news/
   async fetchLatestNewsFromXdaDevelopers() {
     const url = 'https://www.xda-developers.com/news/';
-    const proxy = 'http://127.0.0.1:1087'; // Shadowsocks 代理地址
-    const agent = new HttpsProxyAgent(proxy);
-
-    const response = await axios.get(
-      url,
-      env === 'local' ? { httpsAgent: agent } : {},
-    );
-    const data = response.data;
+    const data = await this.fetchWithProxy(url);
     const $ = cheerio.load(data);
 
     const newsItems: NewsType[] = [];
@@ -383,6 +365,12 @@ export class CrawlerService {
         highlight: '',
       });
     });
+
+    // Ensure GitHub source exists in database
+    await this.newsSourceRepository.upsert(
+      { name: 'XDA', website: url },
+      ['name']
+    );
 
     const result = (
       await Promise.all(
@@ -408,14 +396,7 @@ export class CrawlerService {
   // https://technews.acm.org/
   async fetchLatestNewsFromACMTechNews() {
     const url = 'https://technews.acm.org';
-    const proxy = 'http://127.0.0.1:1087'; // Shadowsocks 代理地址
-    const agent = new HttpsProxyAgent(proxy);
-
-    const response = await axios.get(
-      url,
-      env === 'local' ? { httpsAgent: agent } : {},
-    );
-    const data = response.data;
+    const data = await this.fetchWithProxy(url);
     const $ = cheerio.load(data);
 
     const newsItems: NewsType[] = [];
@@ -455,6 +436,12 @@ export class CrawlerService {
       });
     });
 
+    // Ensure GitHub source exists in database
+    await this.newsSourceRepository.upsert(
+      { name: 'ACM TechNews', website: url },
+      ['name']
+    );
+
     const result = (
       await Promise.all(
         newsItems
@@ -483,8 +470,7 @@ export class CrawlerService {
     const url = 'https://cprss.s3.amazonaws.com/javascriptweekly.com.xml';
 
     try {
-      const response = await axios.get(url);
-      const xmlData = response.data;
+      const xmlData = await this.fetchWithProxy(url);
 
       // Parse the XML data
       const xmlParser = new XMLParser();
@@ -522,6 +508,12 @@ export class CrawlerService {
         }
       });
 
+      // Ensure GitHub source exists in database
+      await this.newsSourceRepository.upsert(
+        { name: 'JavaScript Weekly', website: url },
+        ['name']
+      );
+
       const result = (
         await Promise.all(
           newsItems
@@ -553,14 +545,7 @@ export class CrawlerService {
   // https://www.producthunt.com/
   async fetchLatestNewsFromProductHunt() {
     const url = 'https://www.producthunt.com';
-    const proxy = 'http://127.0.0.1:1087'; // Shadowsocks 代理地址
-    const agent = new HttpsProxyAgent(proxy);
-
-    const response = await axios.get(
-      url,
-      env === 'local' ? { httpsAgent: agent } : {},
-    );
-    const data = response.data;
+    const data = await this.fetchWithProxy(url);
     const $ = cheerio.load(data);
 
     // Initialize an array to hold the product items
@@ -590,6 +575,12 @@ export class CrawlerService {
       });
     });
 
+    // Ensure GitHub source exists in database
+    await this.newsSourceRepository.upsert(
+      { name: 'Product Hunt', website: url },
+      ['name']
+    );
+
     const result = (
       await Promise.all(
         products
@@ -618,14 +609,7 @@ export class CrawlerService {
   // https://news.ycombinator.com/
   async fetchLatestNewsFromHackerNews() {
     const url = 'https://news.ycombinator.com/';
-    const proxy = 'http://127.0.0.1:1087';
-    const agent = new HttpsProxyAgent(proxy);
-
-    const response = await axios.get(
-      url,
-      env === 'local' ? { httpsAgent: agent } : {},
-    );
-    const data = response.data;
+    const data = await this.fetchWithProxy(url);
     const $ = cheerio.load(data);
 
     const newsItems: NewsType[] = [];
@@ -651,6 +635,12 @@ export class CrawlerService {
         source: { name: 'Hacker News' },
       });
     });
+
+    // Ensure GitHub source exists in database
+    await this.newsSourceRepository.upsert(
+      { name: 'Hacker News', website: url },
+      ['name']
+    );
 
     const result = (
       await Promise.all(
